@@ -105,16 +105,16 @@ fun ExercisePageForWorkout(
                 AnimatedVisibility(visible = rightType && rightBody && passesSearch) {
                     if (bodyType != null && type != null) {
                         ExerciseHolder(
-                            showDelete = showDelete,
+                            showMore = showDelete,
                             exerciseName = exercise.name,
                             bodyPart = bodyType,
-                            onItemClick = {
+                            onEdit = {
                                 coroutineScope.launch {
                                     val exercise = exercisesViewModel.getExercise(exercise.name)
                                     onItemClick(exercise)
                                 }
                             },
-                            onDelete = { exerciseName -> exercisesViewModel.onDelete(exerciseName)})
+                            onDelete = { })
                     }
                 }
             }

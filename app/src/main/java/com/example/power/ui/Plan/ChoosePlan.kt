@@ -2,10 +2,8 @@ package com.example.power.ui.Plan
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -45,7 +43,7 @@ fun ChoosePlan(
     Scaffold(
         topBar = {
             AppTopBar(enableBack = true, enableMenu = false,
-                title = "Choose Exercise", backFunction = onBack)
+                title = "Choose Workout", backFunction = onBack)
         },
     ) { paddingValues ->
         WorkoutPageForPlan(
@@ -64,7 +62,6 @@ fun WorkoutPageForPlan(
     val searchText by workoutViewModel.searchText.collectAsState()
     val workouts by workoutViewModel.workouts.collectAsState()
     Column(modifier = modifier.fillMaxHeight()) {
-        Spacer(modifier.heightIn(10.dp))
         SearchItem(searchVal = searchText, setVal = workoutViewModel::onSearchTextChange)
         LazyColumn() {
             items(workouts) { workout ->
@@ -73,16 +70,16 @@ fun WorkoutPageForPlan(
                     ExerciseComposable(
                         exerciseName = workout.name,
                         numOfExercises = workout.numOfExercises,
-                        onItemClick = { onItemClick(workout) },
-                        onDelete = { exerciseName -> workoutViewModel.onDelete(exerciseName) },
-                        showDelete = false
+                        onEdit = { onItemClick(workout) },
+                        onDelete = { },
+                        showMore = false
                     )
                 }
             }
         }
         if (workouts.isEmpty())
             Text(
-                text = "No Workouts  to pick",
+                text = "No Workouts to pick",
                 modifier = Modifier.fillMaxWidth().padding(15.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,

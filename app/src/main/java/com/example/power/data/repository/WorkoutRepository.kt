@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 class WorkoutRepository (private val workoutDao: WorkoutDao) {
     fun getAllWorkoutsStream(): Flow<List<Workout>> = workoutDao.getAllWorkouts()
 
-    fun getWorkoutStream(id: Int): Flow<Workout?> = workoutDao.getWorkoutById(id)
+    fun getWorkout(id: Int): Workout? = workoutDao.getWorkoutById(id)
 
     suspend fun insertWorkout(item: Workout) = workoutDao.insert(item)
 

@@ -11,8 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,9 +35,9 @@ import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.plan.PlanViewModel
 import com.example.power.ui.PlanScreens
 import com.example.power.ui.SearchItem
-import com.example.power.ui.WorkoutScreens
 import com.example.power.ui.exercise.GeneralHolder
 import com.example.power.ui.exercise.MyAlertDialog
+import com.example.power.ui.workout.BottomSheetEditAndDelete
 
 @Composable
 fun Plans(
@@ -67,7 +67,7 @@ fun PlansPage(
                     PlanHolder(
                         planName = plan.name,
                         numOfWorkouts = plan.workouts.size,
-                        onItemClick = { onItemClick(plan.name) },
+                        onEdit = { onItemClick(plan.name) },
                         onDelete = { exerciseName -> planViewModel.onDelete(exerciseName) },
                         typeOfPlan = plan.planType
                     )
@@ -95,7 +95,7 @@ fun PlanHolder(
     planName: String,
     numOfWorkouts: Int,
     typeOfPlan: PlanType,
-    onItemClick: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: (String) -> Unit
 ) {
     var openAlertDialog by remember { mutableStateOf(false) }
@@ -113,17 +113,25 @@ fun PlanHolder(
             )
         }
     }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    BottomSheetEditAndDelete(
+        onEdit = onEdit,
+        type = "Plan",
+        setOpenAlertDialog = {openAlertDialog = true},
+        setShowBottomSheet = { showBottomSheet = it },
+        showBottomSheet = showBottomSheet
+    )
     planTypeToStringMap[typeOfPlan]?.let {
         GeneralHolder(
         modifier = modifier,
         itemName = planName,
         secondaryInfo = "$numOfWorkouts Workouts A Week",
-        onItemClick = onItemClick,
+        onItemClick = onEdit,
         moreText = it,
         isMoreText = true
     ) {
-        IconButton(onClick = { openAlertDialog = true }) {
-            Icon(imageVector = Icons.Filled.Close, contentDescription = "Delete")
+        IconButton(onClick = { showBottomSheet = true }) {
+            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "show more options")
         }
     }
     }
@@ -136,7 +144,7 @@ fun holderPreview() {
         planName = "plan",
         numOfWorkouts = 6,
         typeOfPlan = PlanType.BODYWEIGHT,
-        onItemClick = { /*TODO*/ },
+        onEdit = { /*TODO*/ },
         onDelete = {}
     )
 }

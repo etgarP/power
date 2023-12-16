@@ -4,16 +4,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.power.data.repository.PlanRepository
+import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Plan
 import com.example.power.data.room.Workout
 import com.example.power.data.room.stringToPlanTypeMap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
  * ViewModel to validate and insert exercises in the Room database.
  */
-class PlanEntryViewModel(private val planRepository: PlanRepository) : ViewModel() {
+class PlanEntryViewModel(
+    private val planRepository: PlanRepository,
+    private val workoutsRepository: WorkoutRepository
+) : ViewModel() {
 
     /**
      * Holds current exercise ui state
@@ -36,7 +42,8 @@ class PlanEntryViewModel(private val planRepository: PlanRepository) : ViewModel
     }
     suspend fun savePlan() {
         if (validateInput()) {
-            planUiState.planDetails.toWorkout()?.let { planRepository.insertPlan(it) }
+            val plan = planUiState.planDetails.toWorkout()
+            if (plan != null) planRepository.insertPlan(plan)
         }
     }
     suspend fun updatePlan() {
@@ -60,11 +67,26 @@ class PlanEntryViewModel(private val planRepository: PlanRepository) : ViewModel
         }
         updateUiState(planUiState.planDetails.copy(workouts = newList))
     }
-    suspend fun loadPlanDetails(workoutName: String?) : Boolean {
-        if (workoutName != null) {
-            val workout = planRepository.getPlanByName(workoutName)
-            if (workout != null) {
-                planUiState = workout.toPlanUiState()
+    suspend fun updateWorkouts() {
+        withContext(Dispatchers.IO) {
+            val workouts : MutableList<WorkoutItem> = mutableListOf()
+            for (workout in planUiState.planDetails.workouts) {
+                val w = workoutsRepository.getWorkout(workout.workout.id)
+                if (w != null) {
+                    workouts.add(w.toItem())
+                }
+            }
+            if (workouts.isNotEmpty()) {
+                updateUiState(planUiState.planDetails.copy(workouts = workouts))
+                updatePlan()
+            }
+        }
+    }
+    suspend fun loadPlanDetails(planName: String?) : Boolean {
+        if (planName != null) {
+            val plan = planRepository.getPlanByName(planName)
+            if (plan != null) {
+                planUiState = plan.toPlanUiState()
                 return true
             }
         }

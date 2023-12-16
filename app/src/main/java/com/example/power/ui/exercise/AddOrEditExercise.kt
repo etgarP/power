@@ -8,16 +8,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -105,14 +106,17 @@ fun EditOrAddExercise(
         },
     ) { paddingValues ->
          Column(
-             modifier.verticalScroll(rememberScrollState())
+             modifier
+                 .verticalScroll(rememberScrollState())
                  .fillMaxWidth()
                  .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally) {
-            ExerciseInputForm(exerciseDetails = exerciseDetails,
+            ExerciseInputForm(
+                modifier = Modifier,
+                exerciseDetails = exerciseDetails,
                 onValueChange = onValueChange, onBack = onBack
             )
-            OutlinedButton(
+            Button(
                 enabled = valid,
                 modifier = Modifier.padding(top = 15.dp),
                 onClick = {
@@ -131,29 +135,33 @@ fun EditOrAddExercise(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseInputForm(
+    modifier: Modifier = Modifier,
     exerciseDetails: ExerciseDetails,
     onValueChange: (ExerciseDetails) -> Unit = {},
     onBack: () -> Unit,
 ) {
-    OutlinedTextField(
-        modifier = Modifier.padding(top = 15.dp),
-        value = exerciseDetails.name,
-        onValueChange = { onValueChange(exerciseDetails.copy(name = it)) },
-        label = { Text(text = "Exercise Name") }
-    )
-    DropMenu(options = bodyTypes, label = "Target body part",
-        onValueChange = {bodyType -> onValueChange(exerciseDetails.copy(body = bodyType))},
-        value = exerciseDetails.body
-    )
-    DropMenu(options = category, label = "Category",
-        onValueChange = {type -> onValueChange(exerciseDetails.copy(type = type))},
-        value = exerciseDetails.type
-    )
+    Column(modifier) {
+        OutlinedTextField(
+            modifier = Modifier.padding(top = 15.dp),
+            value = exerciseDetails.name,
+            onValueChange = { onValueChange(exerciseDetails.copy(name = it)) },
+            label = { Text(text = "Exercise Name") }
+        )
+        DropMenuOutlined(options = bodyTypes, label = "Target body part",
+            onValueChange = {bodyType -> onValueChange(exerciseDetails.copy(body = bodyType))},
+            value = exerciseDetails.body
+        )
+        DropMenuOutlined(options = category, label = "Category",
+            onValueChange = {type -> onValueChange(exerciseDetails.copy(type = type))},
+            value = exerciseDetails.type
+        )
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropMenu(
+fun DropMenuOutlined(
     options: List<String>,
     label: String,
     value: String,
@@ -177,6 +185,52 @@ fun DropMenu(
         ) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        onValueChange(selectionOption)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropMenu(
+    modifier: Modifier = Modifier,
+    options: List<String>,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        modifier = modifier,
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
+                .padding(top = 15.dp),
+            readOnly = true,
+            value = value,
+            onValueChange = {onValueChange(it)},
+            label = { Text(text = label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+        )
+        ExposedDropdownMenu(
+            modifier = Modifier,
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    modifier = Modifier,
                     text = { Text(selectionOption) },
                     onClick = {
                         onValueChange(selectionOption)

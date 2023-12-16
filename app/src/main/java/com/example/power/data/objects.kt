@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
+import java.io.Serializable
 import java.util.Date
 
 
@@ -138,7 +139,7 @@ data class Workout(
     var exercises: List<ExerciseHolder> = emptyList(),
     var numOfExercises: Int = exercises.size,
     var position: Int = 0
-) : Parcelable {
+) : Parcelable, Serializable {
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)
     }

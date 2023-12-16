@@ -3,8 +3,8 @@ package com.example.power.ui.workout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -28,6 +28,7 @@ import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutDetails
 import com.example.power.data.view_models.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
+import com.example.power.ui.DragDropListExercises
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 
@@ -143,7 +144,7 @@ fun EditOrAddWorkout(
                 removeExerciseHolder = removeExerciseHolder,
                 swapItems = swapItems,
                 buttonComposable = {
-                    OutlinedButton(
+                    Button(
                         enabled = valid,
                         modifier = Modifier.padding(top = 15.dp),
                         onClick = {
@@ -172,7 +173,7 @@ fun WorkoutInputForm(
     swapItems: (Int, Int) -> Unit,
     buttonComposable: @Composable () -> Unit
 ) {
-    ReorderableExerciseHolderlist(
+    DragDropListExercises(
         workoutDetails = workoutDetails,
         onValueChange = onValueChange,
         removeExerciseHolder = removeExerciseHolder,

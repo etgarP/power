@@ -17,13 +17,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,15 +50,20 @@ import com.example.power.data.room.exerciseTypeMap
 import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.exercise.ExerciseViewModel
 import com.example.power.ui.SearchItem
+import com.example.power.ui.workout.BottomSheetEditAndDelete
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
-fun ExercisePage(
+fun Exercises(
     modifier: Modifier = Modifier,
     onItemClick: (String) -> Unit,
+    showSnack: (String) -> Unit
 ) {
     val exercisesViewModel: ExerciseViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val searchText by exercisesViewModel.searchText.collectAsState()
     val exercises by exercisesViewModel.exercises.collectAsState()
+    val scope = rememberCoroutineScope()
     var typeSelected by remember { mutableStateOf(false) }
     var selectedType by remember { mutableStateOf("") }
     var partSelected by remember { mutableStateOf(false) }
@@ -83,7 +92,7 @@ fun ExercisePage(
             onSelectBody = onSelectBody, onSelectType = onSelectType)
         LazyColumn() {
             items(exercises) { exercise ->
-                val bodyType: String? = bodyTypeMap[exercise.body] // Assuming `bodyTypeMap` is the map you defined earlier
+                val bodyType: String? = bodyTypeMap[exercise.body]
                 val type: String? = exerciseTypeMap[exercise.type]
                 val rightType = !typeSelected || selectedType == type
                 val rightBody = !partSelected || selectedPart == bodyType
@@ -91,11 +100,19 @@ fun ExercisePage(
                 AnimatedVisibility(visible = rightType && rightBody && passesSearch) {
                     if (bodyType != null && type != null) {
                         ExerciseHolder(
-                            showDelete = true,
+                            showMore = true,
                             exerciseName = exercise.name,
                             bodyPart = bodyType,
-                            onItemClick = { onItemClick(exercise.name) },
-                            onDelete = { exerciseName -> exercisesViewModel.onDelete(exerciseName)})
+                            onEdit = { onItemClick(exercise.name) },
+                            onDelete = { exerciseName ->
+                                scope.launch {
+                                    val removed = exercisesViewModel.onDelete(exerciseName)
+                                    if (!removed) {
+                                        showSnack("It cannot be removed - it's used by a workout")
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -103,7 +120,9 @@ fun ExercisePage(
         if (exercises.isEmpty())
             Text(
                 text = "Click + to add an exercise",
-                modifier = Modifier.fillMaxWidth().padding(15.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error
@@ -115,7 +134,7 @@ fun ExercisePage(
     uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ExercisesPreview() {
-    ExercisePage(onItemClick = {})
+    Exercises(onItemClick = {}, showSnack = {})
 }
 
 @Composable
@@ -141,14 +160,15 @@ fun PreviewCircleWithLetter() {
     CircleWithLetter(letter = "h")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseHolder(
     modifier: Modifier = Modifier,
     exerciseName: String,
     bodyPart: String,
-    onItemClick: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: (String) -> Unit,
-    showDelete: Boolean
+    showMore: Boolean
 ) {
     var openAlertDialog by remember { mutableStateOf(false) }
     when {
@@ -165,15 +185,37 @@ fun ExerciseHolder(
             )
         }
     }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    BottomSheetEditAndDelete(
+        onEdit = onEdit,
+        type = "Exercise",
+        setOpenAlertDialog = {openAlertDialog = true},
+        setShowBottomSheet = { showBottomSheet = it },
+        showBottomSheet = showBottomSheet
+    )
     GeneralHolder(
+        modifier,
         itemName = exerciseName,
         secondaryInfo = bodyPart,
-        onItemClick = onItemClick,
+        onItemClick = onEdit,
     ) {
-        if (showDelete)
-            IconButton(onClick = { openAlertDialog = true }) {
-                Icon(imageVector = Icons.Filled.Close, contentDescription = "Delete")
+        if (showMore)
+            IconButton(onClick = { showBottomSheet = true }) {
+                Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "show more options")
             }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+fun DissmissSheet(
+    scope: CoroutineScope,
+    sheetState: SheetState,
+    setShowButtomSheet: (Boolean) -> Unit
+) {
+    scope.launch { sheetState.hide() }.invokeOnCompletion {
+        if (!sheetState.isVisible) {
+            setShowButtomSheet(false)
+        }
     }
 }
 
@@ -262,8 +304,43 @@ fun PreviewExerciseHolder() {
     ExerciseHolder(
         exerciseName = "dumbbell",
         bodyPart = "chest",
-        onItemClick = {},
+        onEdit = {},
         onDelete = {},
-        showDelete = true
+        showMore = true
+    )
+}
+
+@Composable
+fun ButtomSheetItem(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    text: String,
+    onItemClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .padding(bottom = 15.dp)
+            .clickable { onItemClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { }) {
+            Icon(imageVector = imageVector, contentDescription = text)
+        }
+        Text(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            text = text
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ButtomSheetItemPreview() {
+    ButtomSheetItem(
+        imageVector = Icons.Filled.Edit,
+        text = "Edit name",
+        onItemClick = {}
     )
 }

@@ -30,9 +30,6 @@ import com.example.power.R
 
 @Composable
 fun Home(modifier: Modifier = Modifier) {
-    Column() {
-        ChoosePlanSection()
-    }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -172,13 +169,20 @@ fun PlanCard(
 @Composable
 fun OutlinedCard(
     modifier: Modifier = Modifier,
+    changeBackgroundColor: Boolean = false,
     mainContent: @Composable () -> Unit,
-    trailingContent: @Composable () -> Unit
+    trailingContent: @Composable () -> Unit,
 ) {
     Card(
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp),
         border = BorderStroke(1.dp,MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(
+            containerColor =
+                if (changeBackgroundColor)
+                     MaterialTheme.colorScheme.surfaceVariant
+                else
+                    MaterialTheme.colorScheme.surface
+        )
     ) {
         Row(
             modifier = Modifier.padding(10.dp),

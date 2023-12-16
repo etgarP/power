@@ -3,4 +3,5 @@
     <string name="select_a_plan">Select a plan</string>
     <string name="workouts_per_week">Workouts Per Week</string>
     <string name="exercises">Exercises</string>
+    <string name="workouts">Workouts</string>
 </resources>

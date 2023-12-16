@@ -94,7 +94,7 @@ fun SearchItem(
         placeholder = { Text(
             text = "Search",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         ) },
         leadingIcon = {
             Icon(imageVector = Icons.Filled.Search,

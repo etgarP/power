@@ -35,8 +35,17 @@ class WorkoutEntryViewModel(private val workoutRepository: WorkoutRepository) : 
     }
     private fun validateInput(uiState: WorkoutDetails = workoutUiState.workoutDetails): Boolean {
         return with(uiState) {
-            name.isNotBlank() && name.length < 50 && exercises.isNotEmpty()
+            name.isNotBlank() && name.length < 50 && exercises.isNotEmpty() && validSets()
         }
+    }
+    private fun validSets() : Boolean {
+        for (e in workoutUiState.workoutDetails.exercises) {
+            val rightSetsNumber = e.exerciseHolder.sets in 1.. 30
+            if (!rightSetsNumber) {
+                return false
+            }
+        }
+        return true
     }
     suspend fun saveWorkout() {
         if (validateInput()) {
@@ -106,7 +115,6 @@ class WorkoutEntryViewModel(private val workoutRepository: WorkoutRepository) : 
         }.sortedBy { it.exerciseHolder.position }
         updateUiState(workoutUiState.workoutDetails.copy(
             exercises = newList,
-            numOfExercises = workoutUiState.workoutDetails.numOfExercises - 1
         ))
     }
 }
@@ -134,27 +142,10 @@ data class WorkoutDetails(
     var id: Int = 0,
     var name: String = "",
     var exercises: List<ExerciseHolderItem> = emptyList(),
-    var numOfExercises: Int = 0,
 ) {
     fun addExercise(exercise: ExerciseHolder) {
-        exercise.position = numOfExercises
+        exercise.position = exercises.size
         exercises = exercises + exercise.toItem()
-        numOfExercises++
-    }
-    fun removeExercise(exercise: ExerciseHolderItem) {
-        val position = exercise.exerciseHolder.position
-        val updatedExercises = exercises.toMutableList().apply {
-            // Remove the exercise
-            remove(exercise)
-            // Update positions
-            forEach { e ->
-                if (e.exerciseHolder.position > position) {
-                    e.exerciseHolder.position--
-                }
-            }
-        }
-        exercises = updatedExercises
-        numOfExercises--
     }
 }
 
@@ -167,7 +158,7 @@ fun WorkoutDetails.toWorkout(): Workout = Workout(
     id = id,
     name = name,
     exercises = toExerciseHolderList(exercises),
-    numOfExercises = numOfExercises
+    numOfExercises = exercises.size
 )
 
 /**
@@ -185,5 +176,4 @@ fun Workout.toWorkoutDetails(): WorkoutDetails = WorkoutDetails(
     id = id,
     name = name,
     exercises = toExerciseHolderItemList(exercises),
-    numOfExercises = numOfExercises
 )

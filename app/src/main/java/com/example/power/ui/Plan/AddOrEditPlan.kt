@@ -4,21 +4,24 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
@@ -43,10 +47,10 @@ import com.example.power.data.view_models.plan.PlanDetails
 import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
+import com.example.power.ui.GoodTextField
 import com.example.power.ui.exercise.DropMenu
 import com.example.power.ui.home.OutlinedCard
 import com.example.power.ui.home.Section
-import com.example.power.ui.home.TitleCard
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 
@@ -64,8 +68,10 @@ fun EditPlan(
         if (firstTime) {
             val isPlan = viewModel.loadPlanDetails(planName)
             if (!isPlan) onBack()
+            viewModel.updateWorkouts()
         }
         firstTime = false
+
     }
     val addedWorkout = getWorkout()
     if (addedWorkout != null) viewModel.addWorkout(addedWorkout)
@@ -141,7 +147,7 @@ fun EditOrAddPlan(
                 title = title,
                 backFunction = onBack,
                 enableToolTip = true,
-                toolTipMessage = "Swipe an exercise to the right or left to delete it",
+                toolTipMessage = "Swipe a workout to the right or left to delete it",
                 bringUpSnack = { message ->
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(message)
@@ -162,7 +168,7 @@ fun EditOrAddPlan(
                 removeWorkout = removeWorkout,
                 swapItems = swapItems,
                 buttonComposable = {
-                    OutlinedButton(
+                    Button(
                         enabled = valid,
                         modifier = Modifier.padding(top = 15.dp),
                         onClick = {
@@ -209,7 +215,12 @@ fun PlanInputForm(
                     onValueChange = { onValueChange(planDetails.copy(name = it)) },
                     label = { Text(text = "Plan Name") }
                 )
-                DropMenu(options = typesOfPlan, label = "Type Of Plan",
+                DropMenu(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth(),
+                    options = typesOfPlan,
+                    label = "Type Of Plan",
                     onValueChange = { type -> onValueChange(planDetails.copy(type = type)) },
                     value = planDetails.type
                 )
@@ -237,7 +248,7 @@ fun ReorderableWorkoutlist(
             fields()
         }
         item {
-            Section(title = R.string.exercises, tailContent = {
+            Section(title = R.string.workouts, tailContent = {
                 Column(
                     modifier = Modifier.clickable{ getMore() }
                 ) {
@@ -305,22 +316,17 @@ fun WorkoutHolder(
     showSwap: Boolean,
     showCheck: Boolean
 ) {
-    TitleCard(modifier, title = "${workout.name}") {
-        for (exercise in workout.exercises) {
-            Text(text = "${exercise.sets} X ${exercise.exercise.name}", style = MaterialTheme.typography.bodyMedium)
-        }
-    }
+
     OutlinedCard(
         modifier,
         mainContent = {
             Text(text = workout.name, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.padding(1.dp))
-            Column() {
-                for (exercise in workout.exercises) {
-                    Text(text = "${exercise.sets} X ${exercise.exercise.name}",
-                        style = MaterialTheme.typography.bodyMedium)
-                }
+            for (exercise in workout.exercises) {
+                Text(text = "${exercise.sets} X ${exercise.exercise.name}",
+                    style = MaterialTheme.typography.bodyMedium)
             }
+
         })
     {
         if (showSwap || showCheck)
@@ -332,6 +338,31 @@ fun WorkoutHolder(
                 else
                     Icon(Icons.Filled.Check, contentDescription = "more info")
             }
+    }
+
+}
+
+@Composable
+fun WorkoutHolder1(
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        modifier,
+        mainContent = {
+            Text(text = "workoutName", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.padding(1.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Number Of Sets:  ", style = MaterialTheme.typography.bodyMedium)
+                GoodTextField(
+                    value = "$",
+                    onValueChange = {  },
+                    modifier = Modifier.width(50.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        })
+    {
+
     }
 
 }

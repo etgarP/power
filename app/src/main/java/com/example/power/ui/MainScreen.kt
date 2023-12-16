@@ -1,6 +1,7 @@
 package com.example.power.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -26,6 +27,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -34,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -53,7 +57,7 @@ import com.example.power.ui.Plan.Plans
 import com.example.power.ui.exercise.AddBtn
 import com.example.power.ui.exercise.AddExercise
 import com.example.power.ui.exercise.EditExercise
-import com.example.power.ui.exercise.ExercisePage
+import com.example.power.ui.exercise.Exercises
 import com.example.power.ui.home.Home
 import com.example.power.ui.theme.PowerTheme
 import com.example.power.ui.workout.AddPlan
@@ -62,49 +66,65 @@ import com.example.power.ui.workout.ChooseExercise
 import com.example.power.ui.workout.EditPlan
 import com.example.power.ui.workout.EditWorkout
 import com.example.power.ui.workout.Workouts
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf(0) }
-    var exerciseHome by remember { mutableStateOf(false) }
-    var exerciseAdd by remember { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost =  { SnackbarHost(hostState = snackbarHostState)},
         bottomBar = {
-            NavBar(
-                onClick = { inputRoute ->
-                    navController.navigate(inputRoute) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            AnimatedVisibility(selectedItem != 4) {
+                NavBar(
+                    onClick = { inputRoute ->
+                        navController.navigate(inputRoute) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                selectedItem = selectedItem,
-                setSelectedItem = {num -> selectedItem = num}
-            )
+                    },
+                    selectedItem = selectedItem,
+                    setSelectedItem = {num -> selectedItem = num}
+                )
+            }
         },
         floatingActionButton = {
-            val place by navController.currentBackStackEntryAsState()
-            if (place?.destination?.route == Screens.Exercises.route)
+            if (navBackStackEntry?.destination?.route == Screens.Exercises.route)
                 AddBtn(onAdd = { navController.navigate(ExerciseScreens.AddItem.route)})
-            if (place?.destination?.route == Screens.Workouts.route)
+            if (navBackStackEntry?.destination?.route == Screens.Workouts.route)
                 AddBtn(onAdd = { navController.navigate(WorkoutScreens.AddItem.route)})
-            if (place?.destination?.route == Screens.Plans.route)
+            if (navBackStackEntry?.destination?.route == Screens.Plans.route)
                 AddBtn(onAdd = { navController.navigate(PlanScreens.AddItem.route)})
         },
     ) { paddingValues ->
-        appNavHost(paddingValues = paddingValues, navController = navController,
-            setSelectedItem = {selectedItem = it}) }
+        appNavHost(
+            paddingValues = paddingValues,
+            navController = navController,
+            setSelectedItem = {selectedItem = it},
+            snackFun = { string ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(string)
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun appNavHost(paddingValues: PaddingValues, navController:
-                NavHostController, setSelectedItem: (Int) -> Unit) {
+fun appNavHost(
+    paddingValues: PaddingValues,
+    navController: NavHostController,
+    setSelectedItem: (Int) -> Unit,
+    snackFun : (String) -> Unit
+) {
     NavHost(
         navController = navController,
         startDestination = Screens.Home.route,
@@ -250,7 +270,9 @@ fun appNavHost(paddingValues: PaddingValues, navController:
         ) {
             setSelectedItem(2)
             Workouts(onItemClick = { workoutName ->
-                navController.navigate("${WorkoutScreens.EditItem.route}/$workoutName") })
+                navController.navigate("${WorkoutScreens.EditItem.route}/$workoutName") },
+                showSnack = snackFun
+            )
         }
         composable(
             WorkoutScreens.AddItem.route,
@@ -361,9 +383,10 @@ fun appNavHost(paddingValues: PaddingValues, navController:
             }
         ) {
             setSelectedItem(3)
-            ExercisePage(
+            Exercises(
                 onItemClick = { exerciseName ->
-                navController.navigate("${ExerciseScreens.EditItem.route}/$exerciseName") }
+                navController.navigate("${ExerciseScreens.EditItem.route}/$exerciseName") },
+                showSnack = snackFun
             )
         }
         composable(

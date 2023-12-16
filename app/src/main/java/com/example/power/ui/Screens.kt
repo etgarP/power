@@ -8,6 +8,7 @@ sealed class Screens(val route : String) {
     object Plans : Screens("plans_route")
     object Workouts : Screens("workouts_route")
     object Exercises : Screens("exercises_route")
+    object InExercise : Screens("exercise")
 }
 sealed class ExerciseScreens(val route : String) {
     object EditItem : ExerciseScreens("edit_exercise") {

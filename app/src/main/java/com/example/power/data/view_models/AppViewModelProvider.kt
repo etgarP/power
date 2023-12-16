@@ -26,12 +26,18 @@ object AppViewModelProvider {
 
         // Initializer for ExerciseViewModel
         initializer {
-            ExerciseViewModel(powerApplication().container.exercisesRepository)
+            ExerciseViewModel(
+                powerApplication().container.exercisesRepository,
+                powerApplication().container.workoutsRepository
+            )
         }
 
         // Initializer for WorkoutViewModel
         initializer {
-            WorkoutViewModel(powerApplication().container.workoutsRepository)
+            WorkoutViewModel(
+                powerApplication().container.workoutsRepository,
+                powerApplication().container.plansRepository
+            )
         }
         initializer {
             WorkoutEntryViewModel(powerApplication().container.workoutsRepository)
@@ -40,7 +46,10 @@ object AppViewModelProvider {
             PlanViewModel(powerApplication().container.plansRepository)
         }
         initializer {
-            PlanEntryViewModel(powerApplication().container.plansRepository)
+            PlanEntryViewModel(
+                powerApplication().container.plansRepository,
+                powerApplication().container.workoutsRepository
+            )
         }
     }
 }
