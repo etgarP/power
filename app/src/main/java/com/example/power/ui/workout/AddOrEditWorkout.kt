@@ -28,7 +28,6 @@ import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutDetails
 import com.example.power.data.view_models.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.DragDropListExercises
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 

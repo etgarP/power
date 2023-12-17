@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.repository.exercise.ExercisesRepository
 import com.example.power.data.room.Exercise
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,25 +30,22 @@ class ExerciseViewModel(
         _searchText.value = text
     }
     suspend fun onDelete(exerciseName: String) : Boolean {
-        val resultDeferred = CompletableDeferred<Boolean>()
-        viewModelScope.launch {
-            val exercise = exercisesRepository.getExerciseByName(exerciseName)
-            if (exercise != null) {
-                workoutsRepository.getAllWorkoutsStream().collect{
-                    for (workout in it) {
-                        for (e in workout.exercises) {
-                            if (e.exercise.id == exercise.id) {
-                                resultDeferred.complete(false)
-                                return@collect;
-                            }
+        var resultDeferred = false
+        val exercise = exercisesRepository.getExerciseByName(exerciseName)
+        if (exercise != null) {
+            workoutsRepository.getAllWorkoutsStream().collect{
+                for (workout in it) {
+                    for (e in workout.exercises) {
+                        if (e.exercise.id == exercise.id) {
+                            return@collect;
                         }
                     }
-                    exercisesRepository.deleteExercise(exercise)
-                    resultDeferred.complete(true)
                 }
+                exercisesRepository.deleteExercise(exercise)
+                resultDeferred = true
             }
         }
-        return resultDeferred.await()
+        return resultDeferred
     }
     suspend fun getExercise(exerciseName: String): Exercise? {
         return exercisesRepository.getExerciseByName(exerciseName)

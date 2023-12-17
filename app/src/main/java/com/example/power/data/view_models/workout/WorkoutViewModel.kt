@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.power.data.repository.PlanRepository
 import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.room.Workout
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,24 +30,21 @@ class WorkoutViewModel(
         _searchText.value = text
     }
     suspend fun onDelete(workoutName: String) : Boolean {
-        val resultDeferred = CompletableDeferred<Boolean>()
-        viewModelScope.launch {
-            val workout = workoutRepository.getWorkoutByName(workoutName)
-            if (workout != null) {
-                plansRepository.getAllPlansStream().collect{
-                    for (plan in it) {
-                        for (w in plan.workouts) {
-                            if (w.id == workout.id) {
-                                resultDeferred.complete(false)
-                                return@collect;
-                            }
+        var resultDeferred = false
+        val workout = workoutRepository.getWorkoutByName(workoutName)
+        if (workout != null) {
+            plansRepository.getAllPlansStream().collect{
+                for (plan in it) {
+                    for (w in plan.workouts) {
+                        if (w.id == workout.id) {
+                            return@collect;
                         }
                     }
-                    workoutRepository.deleteWorkout(workout)
-                    resultDeferred.complete(true)
                 }
+                workoutRepository.deleteWorkout(workout)
+                resultDeferred = true
             }
         }
-        return resultDeferred.await()
+        return resultDeferred
     }
 }

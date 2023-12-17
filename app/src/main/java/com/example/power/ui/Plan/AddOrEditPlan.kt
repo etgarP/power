@@ -2,25 +2,20 @@ package com.example.power.ui.workout
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -37,7 +32,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
@@ -47,10 +45,12 @@ import com.example.power.data.view_models.plan.PlanDetails
 import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.GoodTextField
 import com.example.power.ui.exercise.DropMenu
-import com.example.power.ui.home.OutlinedCard
 import com.example.power.ui.home.Section
+import com.example.power.ui.home.TitleCard
+import com.example.power.ui.home.performHapticFeedback
+import com.example.power.ui.rememberDragDropListState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 
@@ -230,6 +230,78 @@ fun PlanInputForm(
     )
 }
 
+@Composable
+fun WorkoutsHolder(
+    modifier: Modifier = Modifier,
+    planDetails: PlanDetails,
+    removeExerciseHolder: (WorkoutItem) -> Unit,
+    onValueChange: (PlanDetails) -> Unit,
+    swapItems: (Int, Int) -> Unit,
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var overScrollJob by remember { mutableStateOf<Job?>(null) }
+    val dragDropListState = rememberDragDropListState(onMove = swapItems)
+    var list = planDetails.workouts
+    LazyColumn (
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDrag = { change, offset ->
+                        change.consume()
+                        dragDropListState.onDrag(offset = offset)
+                        if (overScrollJob?.isActive == true)
+                            return@detectDragGesturesAfterLongPress
+                        dragDropListState
+                            .checkForOverScroll()
+                            .takeIf { it != 0f }
+                            ?.let {
+                                overScrollJob = scope.launch {
+                                    dragDropListState.lazyListState.scrollBy(it)
+                                }
+                            } ?: kotlin.run { overScrollJob?.cancel() }
+                    },
+                    onDragStart = {offset ->
+                        performHapticFeedback(context)
+                        dragDropListState.onDragStart(offset)
+                    },
+                    onDragEnd = {
+                        dragDropListState.onDragInterrupted()
+                    },
+                    onDragCancel = {
+                        dragDropListState.onDragInterrupted()
+                    }
+                )
+            },
+        state = dragDropListState.lazyListState
+    ) {
+        items(list, key = { it.uniqueKey }) { item ->
+            var isDragging = dragDropListState.currentIndexOfDraggedItem == item.workout.position
+            ReorderableSwipableItem(
+                modifier = Modifier
+                    .composed {
+                        val offsetOrNull = dragDropListState.elementDisplacement.takeIf {
+                            item.workout.position == dragDropListState.currentIndexOfDraggedItem
+                        }
+                        Modifier.graphicsLayer {
+                            translationY = offsetOrNull ?: 0f
+                        }
+                    },
+                onDismiss = {
+                    removeExerciseHolder(item)
+                    list = list.toMutableList() - item
+                    onValueChange(planDetails.copy(workouts = list))
+                }) {
+                WorkoutCard(
+                    workout = item.workout,
+                    isDragging = isDragging
+                )
+            }
+
+        }
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ReorderableWorkoutlist(
@@ -241,128 +313,53 @@ fun ReorderableWorkoutlist(
     buttonComposable : @Composable () -> Unit,
     fields: @Composable () -> Unit
 ) {
-    var selectedItem: WorkoutItem? by remember { mutableStateOf(null) }
-    var list = planDetails.workouts
-    LazyColumn {
-        item {
-            fields()
-        }
-        item {
-            Section(title = R.string.workouts, tailContent = {
-                Column(
-                    modifier = Modifier.clickable{ getMore() }
-                ) {
-                    Icon(imageVector = Icons.Filled.Add, contentDescription = "")
-                }
-            }) {}
-        }
-        items(list, key = { it.uniqueKey }) { item ->
-            ReorderableSwipableItem(
-                modifier = Modifier.animateItemPlacement(),
-                onDismiss = {
-                    removeExerciseHolder(item)
-                    list = list.toMutableList() - item
-                    onValueChange(planDetails.copy(workouts = list))
-                }) {
-                WorkoutHolder(
-                    workout = item.workout,
-                    onClick =
-                    {
-                        selectedItem = if (selectedItem == null) {
-                            item
-                        } else {
-                            val firstIndex = list.indexOf(selectedItem!!)
-                            val secondIndex = list.indexOf(item)
-                            if (firstIndex != -1 && secondIndex != -1) {
-                                swapItems(firstIndex, secondIndex)
-                            }
-                            null
-                        }
-                    },
-                    showSwap = selectedItem == null,
-                    showCheck = selectedItem != null && selectedItem != item,
-                )
-            }
 
-        }
-
-        item {
-            if (planDetails.workouts.isEmpty())
-                Text(
-                    text = "No workouts were added",
-                    modifier = Modifier
-                        .padding(horizontal = 15.dp)
-                        .padding(bottom = 10.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-        }
-        item {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .animateItemPlacement(),
-                contentAlignment = Alignment.Center){
-                buttonComposable()
+    Column {
+        fields()
+        Section(title = R.string.workouts, tailContent = {
+            Column(
+                modifier = Modifier.clickable{ getMore() }
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "")
             }
+        }) {}
+        WorkoutsHolder(
+            planDetails = planDetails,
+            removeExerciseHolder = removeExerciseHolder,
+            onValueChange = onValueChange,
+            swapItems = swapItems
+        )
+        if (planDetails.workouts.isEmpty())
+            Text(
+                text = "No workouts were added",
+                modifier = Modifier
+                    .padding(horizontal = 15.dp)
+                    .padding(bottom = 10.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        Box(modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ){
+            buttonComposable()
         }
     }
 }
 
 @Composable
-fun WorkoutHolder(
+fun WorkoutCard(
     modifier: Modifier = Modifier,
     workout: Workout,
-    onClick: () -> Unit,
-    showSwap: Boolean,
-    showCheck: Boolean
+    isDragging: Boolean,
 ) {
-
-    OutlinedCard(
-        modifier,
-        mainContent = {
-            Text(text = workout.name, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(1.dp))
-            for (exercise in workout.exercises) {
-                Text(text = "${exercise.sets} X ${exercise.exercise.name}",
-                    style = MaterialTheme.typography.bodyMedium)
-            }
-
-        })
-    {
-        if (showSwap || showCheck)
-            IconButton(onClick = {
-                onClick()
-            }) {
-                if (showSwap)
-                    Icon(Icons.Filled.SwapVert, contentDescription = "more info")
-                else
-                    Icon(Icons.Filled.Check, contentDescription = "more info")
-            }
-    }
-
-}
-
-@Composable
-fun WorkoutHolder1(
-    modifier: Modifier = Modifier
-) {
-    OutlinedCard(
-        modifier,
-        mainContent = {
-            Text(text = "workoutName", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(1.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Number Of Sets:  ", style = MaterialTheme.typography.bodyMedium)
-                GoodTextField(
-                    value = "$",
-                    onValueChange = {  },
-                    modifier = Modifier.width(50.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-            }
-        })
-    {
-
+    TitleCard(
+        title = workout.name,
+        isDragging = isDragging
+    ) {
+        for (exercise in workout.exercises) {
+            Text(text = "${exercise.sets} X ${exercise.exercise.name}",
+                style = MaterialTheme.typography.bodyMedium)
+        }
     }
 
 }

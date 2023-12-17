@@ -69,17 +69,14 @@ class PlanEntryViewModel(
     }
     suspend fun updateWorkouts() {
         withContext(Dispatchers.IO) {
-            val workouts : MutableList<WorkoutItem> = mutableListOf()
             for (workout in planUiState.planDetails.workouts) {
                 val w = workoutsRepository.getWorkout(workout.workout.id)
                 if (w != null) {
-                    workouts.add(w.toItem())
+                    workout.workout.exercises = w.exercises
                 }
             }
-            if (workouts.isNotEmpty()) {
-                updateUiState(planUiState.planDetails.copy(workouts = workouts))
-                updatePlan()
-            }
+            updateUiState(planUiState.planDetails.copy())
+            updatePlan()
         }
     }
     suspend fun loadPlanDetails(planName: String?) : Boolean {
