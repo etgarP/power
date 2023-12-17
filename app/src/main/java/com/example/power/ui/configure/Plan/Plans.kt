@@ -1,4 +1,4 @@
-package com.example.power.ui.Plan
+package com.example.power.ui.configure.Plan
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -35,9 +35,9 @@ import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.plan.PlanViewModel
 import com.example.power.ui.PlanScreens
 import com.example.power.ui.SearchItem
-import com.example.power.ui.exercise.GeneralHolder
-import com.example.power.ui.exercise.MyAlertDialog
-import com.example.power.ui.workout.BottomSheetEditAndDelete
+import com.example.power.ui.configure.Plan.exercise.GeneralHolder
+import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
+import com.example.power.ui.configure.Plan.workout.BottomSheetEditAndDelete
 
 @Composable
 fun Plans(

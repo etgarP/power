@@ -8,7 +8,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
@@ -29,11 +26,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -46,54 +40,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getSystemService
 import com.example.power.R
-import com.example.power.ui.Plan.Plans
-import com.example.power.ui.exercise.Exercises
-import com.example.power.ui.workout.Workouts
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Home(modifier: Modifier = Modifier) {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabTexts = listOf<String>("Plans", "Workouts", "Exercises")
-    val pagerState = rememberPagerState() { tabTexts.size }
-    LaunchedEffect(selectedTabIndex) {
-        pagerState.animateScrollToPage(selectedTabIndex)
-    }
-    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if(!pagerState.isScrollInProgress)
-            selectedTabIndex = pagerState.currentPage
-    }
-    Column(modifier = Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = selectedTabIndex) {
-            tabTexts.forEachIndexed { index, text ->
-                Tab(
-                    selected = index == selectedTabIndex,
-                    onClick = { selectedTabIndex = index },
-                    text = {
-                        Text(text = text)
-                    }
-                )
-            }
-        }
-        HorizontalPager(
-            state = pagerState,
-            modifier = modifier.weight(1f)
-        ) { index ->
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if(index == 0) {
-                    Plans(onItemClick = {})
-                } else if(index == 1) {
-                    Workouts(onItemClick = {}, showSnack = {})
-                } else if (index == 2) {
-                    Exercises(onItemClick = {}, showSnack = {})
-                }
-            }
-        }
-    }
+
 }
 
 @Composable

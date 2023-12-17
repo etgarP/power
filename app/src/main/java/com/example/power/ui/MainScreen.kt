@@ -1,6 +1,8 @@
 package com.example.power.ui
 
 import android.content.res.Configuration
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -15,11 +17,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.RunCircle
 import androidx.compose.material.icons.filled.TipsAndUpdates
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,7 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,23 +54,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.power.R
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Workout
-import com.example.power.ui.Plan.ChoosePlan
-import com.example.power.ui.Plan.Plans
-import com.example.power.ui.exercise.AddBtn
-import com.example.power.ui.exercise.AddExercise
-import com.example.power.ui.exercise.EditExercise
-import com.example.power.ui.exercise.Exercises
+import com.example.power.ui.History.History
+import com.example.power.ui.configure.Configure
+import com.example.power.ui.configure.Plan.ChoosePlan
+import com.example.power.ui.configure.Plan.exercise.AddExercise
+import com.example.power.ui.configure.Plan.exercise.EditExercise
+import com.example.power.ui.configure.Plan.workout.AddWorkout
+import com.example.power.ui.configure.Plan.workout.ChooseExercise
+import com.example.power.ui.configure.Plan.workout.EditWorkout
 import com.example.power.ui.home.Home
 import com.example.power.ui.theme.PowerTheme
 import com.example.power.ui.workout.AddPlan
-import com.example.power.ui.workout.AddWorkout
-import com.example.power.ui.workout.ChooseExercise
 import com.example.power.ui.workout.EditPlan
-import com.example.power.ui.workout.EditWorkout
-import com.example.power.ui.workout.Workouts
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
@@ -95,14 +97,6 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     setSelectedItem = {num -> selectedItem = num}
                 )
             }
-        },
-        floatingActionButton = {
-            if (navBackStackEntry?.destination?.route == Screens.Exercises.route)
-                AddBtn(onAdd = { navController.navigate(ExerciseScreens.AddItem.route)})
-            if (navBackStackEntry?.destination?.route == Screens.Workouts.route)
-                AddBtn(onAdd = { navController.navigate(WorkoutScreens.AddItem.route)})
-            if (navBackStackEntry?.destination?.route == Screens.Plans.route)
-                AddBtn(onAdd = { navController.navigate(PlanScreens.AddItem.route)})
         },
     ) { paddingValues ->
         appNavHost(
@@ -136,13 +130,14 @@ fun appNavHost(
             setSelectedItem(0)
             Home()
         }
-        /**
-         * plan screens
-         */
         composable(
-            Screens.Plans.route,
+            route = Screens.Configure.route,
             enterTransition = {
                 when (initialState.destination.route) {
+                    WorkoutScreens.AddItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
+                    WorkoutScreens.EditItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
+                    ExerciseScreens.AddItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
+                    ExerciseScreens.EditItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     PlanScreens.AddItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     PlanScreens.EditItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
@@ -150,34 +145,64 @@ fun appNavHost(
             },
             exitTransition = {
                 when (targetState.destination.route) {
+                    WorkoutScreens.AddItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
+                    WorkoutScreens.EditItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
+                    ExerciseScreens.AddItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
+                    ExerciseScreens.EditItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     PlanScreens.AddItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     PlanScreens.EditItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     else -> null
                 }
             }
         ) {
-            setSelectedItem(1)
-            Plans(onItemClick = { planName ->
-                navController.navigate("${PlanScreens.EditItem.route}/$planName") })
+        setSelectedItem(2)
+            Configure(
+                editPlan = { planName ->
+                    navController.navigate("${PlanScreens.EditItem.route}/$planName")
+                },
+                editExercise = { exerciseName ->
+                    navController.navigate("${ExerciseScreens.EditItem.route}/$exerciseName")
+                },
+                editWorkout = { workoutName ->
+                    navController.navigate("${WorkoutScreens.EditItem.route}/$workoutName")
+                },
+                showSnack = snackFun,
+                navigate = navController::navigate
+            )
         }
+
+        /**
+         * History Screen
+         */
+        composable(
+            Screens.History.route,
+        ) { navBackResult ->
+            setSelectedItem(1)
+            History()
+        }
+
+        /**
+         * plan screens
+         */
+
         composable(
             PlanScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Plans.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     PlanScreens.ChooseWorkout.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Plans.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     PlanScreens.ChooseWorkout.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     else -> null
                 }
             }
         ) { navBackResult ->
-            setSelectedItem(1)
+            setSelectedItem(2)
             AddPlan(
                 onBack = { navController.popBackStack() },
                 getMore = { navController.navigate(PlanScreens.ChooseWorkout.route) },
@@ -193,20 +218,20 @@ fun appNavHost(
             arguments = PlanScreens.EditItem.arguments,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Plans.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     PlanScreens.ChooseWorkout.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Plans.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     PlanScreens.ChooseWorkout.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     else -> null
                 }
             }
         ) { navBackResult ->
-            setSelectedItem(1)
+            setSelectedItem(2)
             val planName =
                 navBackResult.arguments?.getString(PlanScreens.EditItem.argument)
             EditPlan(
@@ -237,7 +262,7 @@ fun appNavHost(
                 }
             }
         ) {
-            setSelectedItem(1)
+            setSelectedItem(2)
             ChoosePlan(
                 onClick = { workout ->
                     navController.popBackStack()
@@ -248,44 +273,22 @@ fun appNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
         /**
          * workout screens
          */
         composable(
-            Screens.Workouts.route,
-            enterTransition = {
-                when (initialState.destination.route) {
-                    WorkoutScreens.AddItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
-                    WorkoutScreens.EditItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
-                    else -> null
-                }
-            },
-            exitTransition = {
-                when (targetState.destination.route) {
-                    WorkoutScreens.AddItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
-                    WorkoutScreens.EditItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
-                    else -> null
-                }
-            }
-        ) {
-            setSelectedItem(2)
-            Workouts(onItemClick = { workoutName ->
-                navController.navigate("${WorkoutScreens.EditItem.route}/$workoutName") },
-                showSnack = snackFun
-            )
-        }
-        composable(
             WorkoutScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Workouts.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     WorkoutScreens.ChooseExercise.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Workouts.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     WorkoutScreens.ChooseExercise.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     else -> null
                 }
@@ -307,14 +310,14 @@ fun appNavHost(
             arguments = WorkoutScreens.EditItem.arguments,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Workouts.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     WorkoutScreens.ChooseExercise.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Workouts.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     WorkoutScreens.ChooseExercise.route -> scaleOutOfContainer(direction = Direction.INWARDS)
                     else -> null
                 }
@@ -362,49 +365,26 @@ fun appNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
+
         /**
          * Exercise screens
          */
         composable(
-            Screens.Exercises.route,
-            enterTransition = {
-                when (initialState.destination.route) {
-                    ExerciseScreens.AddItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
-                    ExerciseScreens.EditItem.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
-                    else -> null
-                }
-            },
-            exitTransition = {
-                when (targetState.destination.route) {
-                    ExerciseScreens.AddItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
-                    ExerciseScreens.EditItem.route -> scaleOutOfContainer(direction = Direction.INWARDS)
-                    else -> null
-                }
-            }
-        ) {
-            setSelectedItem(3)
-            Exercises(
-                onItemClick = { exerciseName ->
-                navController.navigate("${ExerciseScreens.EditItem.route}/$exerciseName") },
-                showSnack = snackFun
-            )
-        }
-        composable(
             ExerciseScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Exercises.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Exercises.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             }
         ) {
-            setSelectedItem(3)
+            setSelectedItem(2)
             AddExercise(onBack = { navController.popBackStack() })
         }
         composable(
@@ -412,18 +392,18 @@ fun appNavHost(
             arguments = ExerciseScreens.EditItem.arguments,
             enterTransition = {
                 when (initialState.destination.route) {
-                    Screens.Exercises.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     else -> null
                 }
             },
             exitTransition = {
                 when (targetState.destination.route) {
-                    Screens.Exercises.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
             }
         ) { navBackStackEntry ->
-            setSelectedItem(3)
+            setSelectedItem(2)
             val exerciseName =
                 navBackStackEntry.arguments?.getString(ExerciseScreens.EditItem.argument)
             EditExercise(exerciseName = exerciseName, onBack = { navController.popBackStack() })
@@ -514,6 +494,13 @@ fun MyToolTip(
     }
 }
 
+data class navBarItem (
+    val label: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+    val route: String
+)
+
 @Composable
 fun NavBar(
     modifier: Modifier = Modifier,
@@ -521,33 +508,48 @@ fun NavBar(
     selectedItem: Int,
     setSelectedItem: (Int) -> Unit,
 ) {
-    val items = listOf("Home", "Plans", "Workouts", "Exercises")
-    val myIcons = listOf(
-        Icons.Filled.Home,
-        Icons.Filled.CalendarToday,
-        Icons.Filled.RunCircle,
+    val navBarItems = listOf(
+        navBarItem(
+            label = "Home",
+            selectedIcon = Icons.Filled.Home,
+            unselectedIcon = Icons.Outlined.Home,
+            Screens.Home.route
+        ),
+        navBarItem(
+            label = "History",
+            selectedIcon = Icons.Filled.History,
+            unselectedIcon = Icons.Outlined.History,
+            Screens.History.route
+        ),
+        navBarItem(
+            label = "Configure",
+            selectedIcon = Icons.Filled.Tune,
+            unselectedIcon = Icons.Outlined.Tune,
+            Screens.Configure.route
+        ),
     )
-    val myRoutes =  listOf(Screens.Home.route, Screens.Plans.route, Screens.Workouts.route, Screens.Exercises.route)
     NavigationBar(modifier) {
-        items.forEachIndexed { index, item ->
+        navBarItems.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
-                    if (index < 3)
-                        Icon(myIcons[index], contentDescription = item)
-                    else
-                        Icon(painterResource(R.drawable.ic_fitness), contentDescription = item)
+
+                    if (index == selectedItem)
+                        Icon(imageVector = item.selectedIcon, contentDescription = item.label)
+                    else item.unselectedIcon
+                        Icon(imageVector = item.unselectedIcon, contentDescription = item.label)
                 },
-                label = { Text(item) },
+                label = { Text(item.label) },
                 selected = selectedItem == index,
                 onClick = {
                     setSelectedItem(index)
-                    onClick(myRoutes[index])
+                    onClick(item.route)
                 },
             )
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {

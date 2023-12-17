@@ -1,4 +1,4 @@
-package com.example.power.ui.exercise
+package com.example.power.ui.configure.Plan.exercise
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth

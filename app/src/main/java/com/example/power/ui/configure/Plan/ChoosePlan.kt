@@ -1,4 +1,4 @@
-package com.example.power.ui.Plan
+package com.example.power.ui.configure.Plan
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -24,7 +24,7 @@ import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.workout.WorkoutViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.SearchItem
-import com.example.power.ui.workout.ExerciseComposable
+import com.example.power.ui.configure.Plan.workout.ExerciseComposable
 
 
 @Preview

@@ -1,4 +1,4 @@
-package com.example.power.ui.workout
+package com.example.power.ui.configure.Plan.workout
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
@@ -36,10 +36,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.workout.WorkoutViewModel
 import com.example.power.ui.SearchItem
-import com.example.power.ui.exercise.ButtomSheetItem
-import com.example.power.ui.exercise.DissmissSheet
-import com.example.power.ui.exercise.GeneralHolder
-import com.example.power.ui.exercise.MyAlertDialog
+import com.example.power.ui.configure.Plan.exercise.ButtomSheetItem
+import com.example.power.ui.configure.Plan.exercise.DissmissSheet
+import com.example.power.ui.configure.Plan.exercise.GeneralHolder
+import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
 import kotlinx.coroutines.launch
 
 @Composable

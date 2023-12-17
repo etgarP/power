@@ -5,10 +5,8 @@ import androidx.navigation.navArgument
 
 sealed class Screens(val route : String) {
     object Home : Screens("home_route")
-    object Plans : Screens("plans_route")
-    object Workouts : Screens("workouts_route")
-    object Exercises : Screens("exercises_route")
-    object InExercise : Screens("exercise")
+    object Configure : Screens("configure_route")
+    object History : Screens("history_route")
 }
 sealed class ExerciseScreens(val route : String) {
     object EditItem : ExerciseScreens("edit_exercise") {

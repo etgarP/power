@@ -45,7 +45,8 @@ import com.example.power.data.view_models.plan.PlanDetails
 import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.exercise.DropMenu
+import com.example.power.ui.configure.Plan.exercise.DropMenu
+import com.example.power.ui.configure.Plan.workout.ReorderableSwipableItem
 import com.example.power.ui.home.Section
 import com.example.power.ui.home.TitleCard
 import com.example.power.ui.home.performHapticFeedback

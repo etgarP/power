@@ -1,4 +1,4 @@
-package com.example.power.ui.workout
+package com.example.power.ui.configure.Plan.workout
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable

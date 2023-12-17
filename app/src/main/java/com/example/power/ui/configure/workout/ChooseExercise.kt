@@ -1,4 +1,4 @@
-package com.example.power.ui.workout
+package com.example.power.ui.configure.Plan.workout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -29,13 +29,13 @@ import com.example.power.data.view_models.AppViewModelProvider
 import com.example.power.data.view_models.exercise.ExerciseViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.SearchItem
-import com.example.power.ui.exercise.ExerciseFilterRow
-import com.example.power.ui.exercise.ExerciseHolder
+import com.example.power.ui.configure.Plan.exercise.ExerciseFilterRow
+import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
 import kotlinx.coroutines.launch
 
 @Preview
 @Composable
-fun preview() {
+fun previewThis() {
     ChooseExercise(onClick = {}, onBack = {})
 }
 

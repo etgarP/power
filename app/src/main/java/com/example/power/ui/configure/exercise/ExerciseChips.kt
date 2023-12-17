@@ -1,4 +1,4 @@
-package com.example.power.ui.exercise
+package com.example.power.ui.configure.Plan.exercise
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
