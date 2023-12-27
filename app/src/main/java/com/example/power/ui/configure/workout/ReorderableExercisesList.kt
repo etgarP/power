@@ -5,11 +5,13 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,16 +44,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.power.data.CountdownTimer
 import com.example.power.data.room.CardioExercise
 import com.example.power.data.room.ExerciseHolder
 import com.example.power.data.room.RepsExercise
 import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.ui.GoodTextField
+import com.example.power.ui.PowerNotificationService
 import com.example.power.ui.home.OutlinedCard
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -149,7 +155,8 @@ fun ExerciseHolderComposable(
     isDraggingThis: Boolean,
     onDismiss: () -> Unit,
     reorderable: Boolean,
-    isActiveWorkout: Boolean
+    isActiveWorkout: Boolean,
+    breakTime: Int
 ) {
     var setsNum by remember { mutableIntStateOf(exerciseHolder.sets) }
 
@@ -195,6 +202,7 @@ fun ExerciseHolderComposable(
                 },
                 reorderable = reorderable,
                 setsList = setList,
+                breakTime = breakTime
             )
         }
 
@@ -202,13 +210,13 @@ fun ExerciseHolderComposable(
             var setList by remember { mutableStateOf( setToList(exerciseHolder.reps, null)) }
             GeneralExerciseComposable(
                 modifier = modifier,
-                setsNum = setsNum,
+                isActiveWorkout = isActiveWorkout,
                 exerciseName = exerciseHolder.exercise.name,
                 isDraggingThis = isDraggingThis,
-                isSecondCategory = false,
                 onDismiss = onDismiss,
+                setsNum = setsNum,
+                isSecondCategory = false,
                 firstCategoryName = "Reps",
-                setsList = setList,
                 atFirstCategoryChange = { index, string ->
                     try {
                         exerciseHolder.reps[index] = string.toInt()
@@ -219,6 +227,7 @@ fun ExerciseHolderComposable(
                         setList = setToList(exerciseHolder.reps, null)
                     }
                 },
+                setsList = setList,
                 atAddSet = {
                     exerciseHolder.reps.add(exerciseHolder.reps[setsNum-1])
                     setList = setToList(exerciseHolder.reps, null)
@@ -238,7 +247,7 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                isActiveWorkout = isActiveWorkout
+                breakTime = breakTime
             )
         }
 
@@ -246,13 +255,13 @@ fun ExerciseHolderComposable(
             var setList by remember { mutableStateOf( setToList(exerciseHolder.seconds, exerciseHolder.km)) }
             GeneralExerciseComposable(
                 modifier = modifier,
-                setsNum = setsNum,
+                isActiveWorkout = isActiveWorkout,
                 exerciseName = exerciseHolder.exercise.name,
                 isDraggingThis = isDraggingThis,
                 onDismiss = onDismiss,
+                setsNum = setsNum,
                 firstCategoryName = "Secs",
                 secondCategoryName = "Km",
-                setsList = setList,
                 atFirstCategoryChange = { index, string ->
                     try {
                         exerciseHolder.seconds[index] = string.toInt()
@@ -273,6 +282,7 @@ fun ExerciseHolderComposable(
                         setList = setToList(exerciseHolder.seconds, exerciseHolder.km)
                     }
                 },
+                setsList = setList,
                 atAddSet = {
                     exerciseHolder.seconds.add(exerciseHolder.seconds[setsNum-1])
                     exerciseHolder.km.add(exerciseHolder.km[setsNum-1])
@@ -294,7 +304,7 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                isActiveWorkout = isActiveWorkout
+                breakTime = breakTime
             )
         }
 
@@ -302,13 +312,13 @@ fun ExerciseHolderComposable(
             var setList by remember { mutableStateOf(setToList(exerciseHolder.weights, exerciseHolder.reps)) }
             GeneralExerciseComposable(
                 modifier = modifier,
-                setsNum = setsNum,
+                isActiveWorkout = isActiveWorkout,
                 exerciseName = exerciseHolder.exercise.name,
                 isDraggingThis = isDraggingThis,
                 onDismiss = onDismiss,
+                setsNum = setsNum,
                 firstCategoryName = "Weight",
                 secondCategoryName = "Reps",
-                setsList = setList,
                 atFirstCategoryChange = { index, string ->
                     try {
                         exerciseHolder.weights[index] = string.toInt()
@@ -329,6 +339,7 @@ fun ExerciseHolderComposable(
                         setList = setToList(exerciseHolder.weights, exerciseHolder.reps)
                     }
                 },
+                setsList = setList,
                 atAddSet = {
                     exerciseHolder.weights.add(exerciseHolder.weights[setsNum-1])
                     exerciseHolder.reps.add(exerciseHolder.reps[setsNum-1])
@@ -350,7 +361,7 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                isActiveWorkout = isActiveWorkout
+                breakTime = breakTime
             )
         }
 
@@ -375,8 +386,12 @@ fun GeneralExerciseComposable(
     setsList: List<Set>,
     atAddSet: () -> Unit,
     removeSetFromIndex: (Int) -> Unit,
-    reorderable: Boolean
+    reorderable: Boolean,
+    breakTime: Int
 ) {
+    var showBreak by remember { mutableStateOf(false) }
+    val timer by remember { mutableStateOf(CountdownTimer(breakTime))  }
+    var time by remember { mutableStateOf(timer.getFormattedTime()) }
     OutlinedCard(
         padding = false,
         modifier = modifier,
@@ -404,8 +419,8 @@ fun GeneralExerciseComposable(
                 }
             }
             AnimatedVisibility (!reorderable) {
-                Divider(color = MaterialTheme.colorScheme.outlineVariant)
                 Column {
+                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -444,6 +459,7 @@ fun GeneralExerciseComposable(
                     }
                     Divider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(modifier = Modifier.padding(4.dp))
+                    val notificationService = PowerNotificationService(LocalContext.current)
                     for (i in 0 until setsNum) {
                         SetsRow(
                             i = i,
@@ -453,13 +469,40 @@ fun GeneralExerciseComposable(
                             isSecondCategory = isSecondCategory,
                             secondVal = setsList[i].second,
                             isActiveWorkout = isActiveWorkout
+                        ) {
+                            showBreak = true
+                            timer.loadTime(breakTime)
+                            timer.start(
+                                onTick = { time = it },
+                                onFinish = {
+                                    showBreak = false
+                                    notificationService.showBasicNotification()
+                                })
+                        }
+                    }
+                    if (!showBreak)
+                        Spacer(modifier = Modifier.padding(4.dp))
+                }
+            }
+            AnimatedVisibility (
+                visible = showBreak,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+            ) {
+                Row (
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    GoodOutlinedButton(text = "Break: $time left", onClick = {
+                        showBreak = false
+                    }) {
+                        Spacer(modifier = Modifier.padding(3.dp))
+                        Icon(
+                            imageVector = Icons.Filled.Stop,
+                            contentDescription = "stop",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
-                    Spacer(modifier = Modifier.padding(4.dp))
-
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
-
-
                 }
             }
         })
@@ -471,7 +514,8 @@ fun GoodOutlinedButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     text: String,
-    textColor: Color = MaterialTheme.colorScheme.primary
+    textColor: Color = MaterialTheme.colorScheme.primary,
+    endComposable: @Composable () -> Unit = {}
 ) {
         OutlinedButton(
             modifier = modifier,
@@ -485,6 +529,7 @@ fun GoodOutlinedButton(
             )
         ) {
             Text(text = text, color = textColor)
+            endComposable()
         }
 
 }
@@ -498,7 +543,8 @@ fun SetsRow(
     isSecondCategory: Boolean,
     firstVal: Int,
     secondVal: Int,
-    isActiveWorkout: Boolean = false
+    isActiveWorkout: Boolean = false,
+    onStart: () -> Unit
 ) {
     val first = if (firstVal == 0) "" else "$firstVal"
     val second = if (secondVal == 0) "" else "$secondVal"
@@ -539,7 +585,10 @@ fun SetsRow(
         if (isActiveWorkout) {
             androidx.compose.material3.Checkbox(
                 checked = checked,
-                onCheckedChange = { checked = it }
+                onCheckedChange = {
+                    checked = it
+                    if (it) onStart()
+                }
             )
             Spacer(modifier = Modifier.width(12.dp))
         }
@@ -552,19 +601,20 @@ fun PreviewExerciseHolder() {
     Column {
         GeneralExerciseComposable(
             modifier = Modifier,
+            isActiveWorkout = true,
             exerciseName = "exerciseName",
-            setsNum = 1,
             isDraggingThis = false,
             onDismiss = {},
+            setsNum = 1,
             isSecondCategory = true,
             firstCategoryName = "Kg",
             secondCategoryName = "Reps",
             atFirstCategoryChange = { _, _ ->},
+            setsList = listOf(Set(1,1)),
             atAddSet = {},
             removeSetFromIndex = {},
             reorderable = false,
-            setsList = listOf(Set(1,1)),
-            isActiveWorkout = true
+            breakTime = 60
         )
     }
 }

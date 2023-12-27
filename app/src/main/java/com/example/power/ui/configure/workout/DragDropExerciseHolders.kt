@@ -126,7 +126,8 @@ fun onlyExercises(
                     onValueChange(workoutDetails.copy(exercises = list))
                 },
                 reorderable = reorderable,
-                isActiveWorkout = isActiveWorkout
+                isActiveWorkout = isActiveWorkout,
+                breakTime = workoutDetails.secsBreak
             )
         }
     }

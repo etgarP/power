@@ -138,7 +138,8 @@ data class Workout(
     var name: String = "",
     var exercises: List<ExerciseHolder> = emptyList(),
     var numOfExercises: Int = exercises.size,
-    var position: Int = 0
+    var position: Int = 0,
+    var breakTimeSecs: Int = 60
 ) : Parcelable, Serializable {
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)

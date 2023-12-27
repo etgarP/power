@@ -84,4 +84,8 @@ dependencies {
     implementation "androidx.compose.material:material"
     implementation "androidx.compose.material3:material3:1.1.2"
     debugImplementation "androidx.compose.ui:ui-tooling"
+
+    // notification
+    implementation("com.google.accompanist:accompanist-permissions:0.31.1-alpha")
+
 }

@@ -1,5 +1,6 @@
 package com.example.power
 
+import android.app.NotificationManager
 import android.content.Context
 import com.example.power.data.repository.PlanRepository
 import com.example.power.data.repository.WorkoutRepository
@@ -14,6 +15,7 @@ interface AppContainer {
     val exercisesRepository: ExercisesRepository
     val workoutsRepository: WorkoutRepository
     val plansRepository: PlanRepository
+    val scope: Context
 }
 
 /**
@@ -32,4 +34,22 @@ class AppDataContainer(private val context: Context) : AppContainer {
     override val plansRepository: PlanRepository by lazy {
         PlanRepository(AppDatabase.getDatabase(context).planDao())
     }
+    override val scope: Context
+        get() = context
+
+    private val notificationManager=context.getSystemService(NotificationManager::class.java)
+//    override fun breakOverNotification(){
+//        val notification= NotificationCompat.Builder(context,"water_notification")
+//            .setContentTitle("Break Over")
+//            .setContentText("Get back to it :)")
+////            .setSmallIcon(R.drawable.water_icon)
+//            .setPriority(NotificationManager.IMPORTANCE_HIGH)
+//            .setAutoCancel(true)
+//            .build()
+//
+//        notificationManager.notify(
+//            Random.nextInt(),
+//            notification
+//        )
+//    }
 }

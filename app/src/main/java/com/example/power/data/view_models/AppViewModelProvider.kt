@@ -40,7 +40,9 @@ object AppViewModelProvider {
             )
         }
         initializer {
-            WorkoutEntryViewModel(powerApplication().container.workoutsRepository)
+            WorkoutEntryViewModel(
+                powerApplication().container.workoutsRepository
+            )
         }
         initializer {
             PlanViewModel(powerApplication().container.plansRepository)

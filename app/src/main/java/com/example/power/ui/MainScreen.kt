@@ -1,5 +1,6 @@
 package com.example.power.ui
 
+import android.Manifest
 import android.content.res.Configuration
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -36,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +67,9 @@ import com.example.power.ui.home.Home
 import com.example.power.ui.theme.PowerTheme
 import com.example.power.ui.workout.AddPlan
 import com.example.power.ui.workout.EditPlan
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
@@ -544,7 +549,7 @@ fun NavBar(
                 icon = {
                     if (index == selectedItem)
                         Icon(imageVector = item.selectedIcon, contentDescription = item.label)
-                    else item.unselectedIcon
+                    else
                         Icon(imageVector = item.unselectedIcon, contentDescription = item.label)
                 },
                 label = { Text(item.label) },
@@ -558,10 +563,18 @@ fun NavBar(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
+    val postNotificationPermission=
+        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+    LaunchedEffect(key1 = true ){
+        if(!postNotificationPermission.status.isGranted){
+            postNotificationPermission.launchPermissionRequest()
+        }
+    }
     PowerTheme {
         Surface(modifier) {
             MainScreen()
