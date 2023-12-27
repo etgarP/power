@@ -130,7 +130,6 @@ fun toWorkoutList(workouts: List<WorkoutItem>) =
 data class PlanDetails(
     var id: Int = 0,
     var name: String = "",
-    var weeks: Int = 0,
     var workouts: List<WorkoutItem> = emptyList(),
     var type: String = "Body-Weight Plan"
 )
@@ -140,15 +139,18 @@ data class PlanDetails(
  * not a valid [Double], then the price will be set to 0.0. Similarly if the value of
  * [ItemDetails.quantity] is not a valid [Int], then the quantity will be set to 0
  */
-fun PlanDetails.toWorkout(): Plan? =
-    stringToPlanTypeMap[type]?.let {
-    Plan(
-    id = id,
-    name = name,
-    workouts = toWorkoutList(workouts),
-    weeks = weeks,
-    planType = it
-    )
+fun PlanDetails.toWorkout(): Plan? {
+    val plan = stringToPlanTypeMap[type]?.let {
+        Plan(
+            id = id,
+            name = name,
+            workouts = toWorkoutList(workouts),
+            weeks = workouts.size,
+            planType = it
+        )
+    }
+    plan?.startWeeks()
+    return plan
 }
 
 
@@ -167,5 +169,4 @@ fun Plan.toPlanDetails(): PlanDetails = PlanDetails(
     id = id,
     name = name,
     workouts = toWorkoutItemList(workouts),
-    weeks = weeks
 )

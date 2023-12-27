@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.power.data.repository.PlanRepository
 import com.example.power.data.repository.WorkoutRepository
+import com.example.power.data.room.Plan
 import com.example.power.data.room.Workout
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,22 +31,24 @@ class WorkoutViewModel(
     fun onSearchTextChange(text: String) {
         _searchText.value = text
     }
-    suspend fun onDelete(workoutName: String) : Boolean {
-        var resultDeferred = false
+    suspend fun getPlans(): List<Plan> {
+        val plans = emptyList<Plan>()
+        val collector: FlowCollector<List<Plan>> = FlowCollector { plansRepository.getAllPlansStream() }
+        collector.emit(plans)
+        return plans
+    }
+    suspend fun onDelete(workoutName: String, plans : List<Plan>) : Boolean {
         val workout = workoutRepository.getWorkoutByName(workoutName)
         if (workout != null) {
-            plansRepository.getAllPlansStream().collect{
-                for (plan in it) {
-                    for (w in plan.workouts) {
-                        if (w.id == workout.id) {
-                            return@collect;
-                        }
+            for (plan in plans) {
+                for (w in plan.workouts) {
+                    if (w.id == workout.id) {
+                        return false
                     }
                 }
-                workoutRepository.deleteWorkout(workout)
-                resultDeferred = true
             }
+            workoutRepository.deleteWorkout(workout)
         }
-        return resultDeferred
+        return true
     }
 }

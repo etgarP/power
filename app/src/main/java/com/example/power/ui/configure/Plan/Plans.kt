@@ -42,10 +42,10 @@ import com.example.power.ui.configure.Plan.workout.BottomSheetEditAndDelete
 @Composable
 fun Plans(
     modifier: Modifier = Modifier,
-    onItemClick: (String) -> Unit
+    onEdit: (String) -> Unit
 ) {
     Column {
-        PlansPage(onItemClick = onItemClick, modifier = modifier)
+        PlansPage(onItemClick = onEdit, modifier = modifier)
     }
 }
 

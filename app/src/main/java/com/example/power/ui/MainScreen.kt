@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.History
@@ -32,8 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -64,23 +60,20 @@ import com.example.power.ui.configure.Plan.exercise.EditExercise
 import com.example.power.ui.configure.Plan.workout.AddWorkout
 import com.example.power.ui.configure.Plan.workout.ChooseExercise
 import com.example.power.ui.configure.Plan.workout.EditWorkout
+import com.example.power.ui.configure.workout.OnGoingWorkout
 import com.example.power.ui.home.Home
 import com.example.power.ui.theme.PowerTheme
 import com.example.power.ui.workout.AddPlan
 import com.example.power.ui.workout.EditPlan
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf(0) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost =  { SnackbarHost(hostState = snackbarHostState)},
         bottomBar = {
             AnimatedVisibility(selectedItem != 4) {
                 NavBar(
@@ -103,11 +96,6 @@ fun MainScreen(modifier: Modifier = Modifier) {
             paddingValues = paddingValues,
             navController = navController,
             setSelectedItem = {selectedItem = it},
-            snackFun = { string ->
-                scope.launch {
-                    snackbarHostState.showSnackbar(string)
-                }
-            }
         )
     }
 }
@@ -117,7 +105,6 @@ fun appNavHost(
     paddingValues: PaddingValues,
     navController: NavHostController,
     setSelectedItem: (Int) -> Unit,
-    snackFun : (String) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -130,6 +117,9 @@ fun appNavHost(
             setSelectedItem(0)
             Home()
         }
+        /**
+         * configure screen
+         */
         composable(
             route = Screens.Configure.route,
             enterTransition = {
@@ -166,7 +156,9 @@ fun appNavHost(
                 editWorkout = { workoutName ->
                     navController.navigate("${WorkoutScreens.EditItem.route}/$workoutName")
                 },
-                showSnack = snackFun,
+                startWorkout = { workoutName ->
+                    navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
+                },
                 navigate = navController::navigate
             )
         }
@@ -338,6 +330,38 @@ fun appNavHost(
             )
         }
         composable(
+            route = WorkoutScreens.StartItem.routeWithArgs,
+            arguments = WorkoutScreens.StartItem.arguments,
+            enterTransition = {
+                when (initialState.destination.route) {
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
+                    WorkoutScreens.ChooseExercise.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
+                    else -> null
+                }
+            },
+            exitTransition = {
+                when (targetState.destination.route) {
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+                    WorkoutScreens.ChooseExercise.route -> scaleOutOfContainer(direction = Direction.INWARDS)
+                    else -> null
+                }
+            }
+        ) { navBackResult ->
+            setSelectedItem(2)
+            val workoutName =
+                navBackResult.arguments?.getString(WorkoutScreens.StartItem.argument)
+            OnGoingWorkout(
+                workoutName = workoutName,
+                onBack = { navController.popBackStack() },
+                getMore = { navController.navigate(WorkoutScreens.ChooseExercise.route) },
+                getExercise = {
+                    val exercise = navBackResult.savedStateHandle.get<Exercise>("exercise")
+                    navBackResult.savedStateHandle["exercise"] = null
+                    exercise
+                }
+            )
+        }
+        composable(
             WorkoutScreens.ChooseExercise.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -442,12 +466,9 @@ fun scaleOutOfContainer(
 @Composable
 fun AppTopBar(
     enableBack: Boolean = false,
-    enableMenu: Boolean = false,
     title: String,
     backFunction: () -> Unit,
-    enableToolTip: Boolean = false,
-    toolTipMessage: String = "",
-    bringUpSnack: (String) -> Unit = {}
+    endIcon: @Composable () -> Unit = {}
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     CenterAlignedTopAppBar(
@@ -468,18 +489,7 @@ fun AppTopBar(
                 }
         },
         actions = {
-            if (enableMenu)
-                IconButton(onClick = { /* do something */ }) {
-                    Icon(
-                        imageVector = Icons.Filled.Menu,
-                        contentDescription = "Localized description"
-                    )
-                }
-            if(enableToolTip) {
-                MyToolTip(
-                    onClick = { bringUpSnack(toolTipMessage) }
-                )
-            }
+            endIcon()
         },
         scrollBehavior = scrollBehavior,
     )
@@ -532,7 +542,6 @@ fun NavBar(
         navBarItems.forEachIndexed { index, item ->
             NavigationBarItem(
                 icon = {
-
                     if (index == selectedItem)
                         Icon(imageVector = item.selectedIcon, contentDescription = item.label)
                     else item.unselectedIcon

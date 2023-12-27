@@ -2,6 +2,7 @@ package com.example.power.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -155,15 +156,14 @@ fun GoodTextField(
             fontSize = fontSize
         ),
         decorationBox = {
-            Column (modifier){
+            Column (modifier, horizontalAlignment = Alignment.CenterHorizontally){
                 Row(
                     Modifier.padding(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     if (leadingIcon != null) leadingIcon()
-                    Box(
-                        Modifier
-                            .align(Alignment.CenterVertically)) {
+                    Box{
                         if (value.isEmpty())
                             if (placeholder != null) {
                                 placeholder()
@@ -176,4 +176,8 @@ fun GoodTextField(
         }
     )
 }
-
+@Preview(showBackground = true)
+@Composable
+fun PreviewGoodTextField() {
+    GoodTextField(value = "3", onValueChange = {})
+}

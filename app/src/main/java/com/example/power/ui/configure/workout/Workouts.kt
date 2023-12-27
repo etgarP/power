@@ -45,17 +45,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun Workouts(
     modifier: Modifier = Modifier,
+    onEdit: (String) -> Unit,
     onItemClick: (String) -> Unit,
     showSnack: (String) -> Unit
 ) {
     Column {
-        WorkoutsPage(onItemClick = onItemClick, modifier = modifier, showSnack = showSnack)
+        WorkoutsPage(onEdit = onEdit, onItemClick = onItemClick, modifier = modifier, showSnack = showSnack)
     }
 }
 
 @Composable
 fun WorkoutsPage(
     modifier: Modifier = Modifier,
+    onEdit: (String) -> Unit,
     onItemClick: (String) -> Unit,
     showSnack: (String) -> Unit
 ) {
@@ -73,10 +75,12 @@ fun WorkoutsPage(
                     ExerciseComposable(
                         exerciseName = workout.name,
                         numOfExercises = workout.numOfExercises,
-                        onEdit = { onItemClick(workout.name) },
+                        onEdit = { onEdit(workout.name) },
+                        onItemClick = { onItemClick(workout.name) },
                         onDelete = {exerciseName ->
                             scope.launch {
-                                val removed = workoutViewModel.onDelete(exerciseName)
+                                val plans = workoutViewModel.getPlans()
+                                val removed = workoutViewModel.onDelete(exerciseName, plans)
                                 if (!removed) {
                                     showSnack("It cannot be removed - it's used by a plan")
                                 }
@@ -105,6 +109,7 @@ fun ExerciseComposable(
     exerciseName: String,
     numOfExercises: Int,
     onEdit: () -> Unit,
+    onItemClick: () -> Unit,
     onDelete: (String) -> Unit,
     showMore: Boolean = true
 ) {
@@ -135,7 +140,7 @@ fun ExerciseComposable(
         modifier = modifier,
         itemName = exerciseName,
         secondaryInfo = "$numOfExercises exercises",
-        onItemClick = onEdit,
+        onItemClick = onItemClick
     ) {
         if(showMore)
             IconButton(onClick = { showBottomSheet = true }) {
@@ -162,7 +167,7 @@ fun BottomSheetEditAndDelete(
             },
             sheetState = sheetState
         ) {
-            Column(modifier = Modifier.padding(bottom = 20.dp)) {
+            Column(modifier = Modifier.padding(bottom = 40.dp)) {
                 ButtomSheetItem(
                     imageVector = Icons.Filled.Edit,
                     text = "Edit $type"
@@ -185,5 +190,5 @@ fun BottomSheetEditAndDelete(
 @Preview(showBackground = true, widthDp = 400, heightDp = 700, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun WorkoutPreview() {
-    Workouts(onItemClick = {}, showSnack = {})
+    Workouts(onEdit = {}, showSnack = {}, onItemClick = {})
 }

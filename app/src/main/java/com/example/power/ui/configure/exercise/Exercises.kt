@@ -63,6 +63,7 @@ fun Exercises(
     val exercisesViewModel: ExerciseViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val searchText by exercisesViewModel.searchText.collectAsState()
     val exercises by exercisesViewModel.exercises.collectAsState()
+    val workouts by exercisesViewModel.workouts.collectAsState()
     val scope = rememberCoroutineScope()
     var typeSelected by remember { mutableStateOf(false) }
     var selectedType by remember { mutableStateOf("") }
@@ -106,7 +107,7 @@ fun Exercises(
                             onEdit = { onItemClick(exercise.name) },
                             onDelete = { exerciseName ->
                                 scope.launch {
-                                    val removed = exercisesViewModel.onDelete(exerciseName)
+                                    val removed = exercisesViewModel.onDelete(exerciseName, workouts)
                                     if (!removed) {
                                         showSnack("It cannot be removed - it's used by a workout")
                                     }
@@ -166,9 +167,9 @@ fun ExerciseHolder(
     modifier: Modifier = Modifier,
     exerciseName: String,
     bodyPart: String,
-    onEdit: () -> Unit,
-    onDelete: (String) -> Unit,
-    showMore: Boolean
+    onEdit: () -> Unit = {},
+    onDelete: (String) -> Unit = {},
+    showMore: Boolean = false
 ) {
     var openAlertDialog by remember { mutableStateOf(false) }
     when {

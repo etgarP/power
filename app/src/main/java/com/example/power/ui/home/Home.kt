@@ -141,6 +141,7 @@ fun WorkoutCardPreview(
 fun OutlinedCard(
     modifier: Modifier = Modifier,
     changeBackgroundColor: Boolean = false,
+    padding: Boolean = true,
     mainContent: @Composable () -> Unit,
     trailingContent: @Composable () -> Unit,
 ) {
@@ -156,12 +157,11 @@ fun OutlinedCard(
         colors = CardDefaults.cardColors(containerColor = animatedColor)
     ) {
         Row(
-            modifier = Modifier.padding(10.dp),
+            if (padding) Modifier.padding(10.dp) else Modifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier
                 .weight(1f)
-                .padding(start = 4.dp)
             ) {
                 mainContent()
             }

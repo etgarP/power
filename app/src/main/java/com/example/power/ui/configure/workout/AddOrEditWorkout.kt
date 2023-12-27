@@ -3,8 +3,13 @@ package com.example.power.ui.configure.Plan.workout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -20,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
@@ -57,7 +63,6 @@ fun EditWorkout(
         onValueChange = viewModel::updateUiState,
         workoutDetails = viewModel.workoutUiState.workoutDetails,
         valid = viewModel.workoutUiState.isEntryValid,
-        buttonText = "Update",
         removeExerciseHolder = viewModel::removeExercise,
         onDone = viewModel::updateWorkout,
         title = "Edit Workout",
@@ -84,7 +89,6 @@ fun AddWorkout(
         onValueChange = viewModel::updateUiState,
         workoutDetails = viewModel.workoutUiState.workoutDetails,
         valid = viewModel.workoutUiState.isEntryValid,
-        buttonText = "Save",
         removeExerciseHolder = viewModel::removeExercise,
         onDone = viewModel::saveWorkout,
         title = "Add Workout",
@@ -103,11 +107,11 @@ fun EditOrAddWorkout(
     workoutDetails: WorkoutDetails,
     onValueChange: (WorkoutDetails) -> Unit = {},
     valid: Boolean,
-    buttonText: String,
     onDone: KSuspendFunction0<Unit>,
     getMore: () -> Unit,
     removeExerciseHolder: (ExerciseHolderItem) -> Unit,
-    swapItems: (Int, Int) -> Unit
+    swapItems: (Int, Int) -> Unit,
+    isActiveWorkout: Boolean = false
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -121,13 +125,19 @@ fun EditOrAddWorkout(
                 enableBack = true,
                 title = title,
                 backFunction = onBack,
-                enableToolTip = true,
-                toolTipMessage = "Swipe an exercise to the right or left to delete it",
-                bringUpSnack = { message ->
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(message)
-                    }
-                },
+                endIcon = {
+                    RightHandNavButton(
+                        text = "",
+                        onClick = {
+                            coroutineScope.launch {
+                                onDone()
+                                onBack()
+                            }
+                        },
+                        valid = valid,
+                        isActiveWorkout = isActiveWorkout
+                    )
+                }
             )
         },
     ) { paddingValues ->
@@ -142,27 +152,45 @@ fun EditOrAddWorkout(
                 getMore = getMore,
                 removeExerciseHolder = removeExerciseHolder,
                 swapItems = swapItems,
-                buttonComposable = {
-                    Button(
-                        enabled = valid,
-                        modifier = Modifier.padding(top = 15.dp),
-                        onClick = {
-                            coroutineScope.launch {
-                                onDone()
-                                onBack()
-                            }
-                        }
-                    ) {
-                        Text(text = buttonText)
-                    }
-                }
+                isActiveWorkout = isActiveWorkout
             )
 
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
+@Composable
+fun RightHandNavButton(
+    text: String,
+    onClick: () -> Unit,
+    valid: Boolean = true,
+    isActiveWorkout: Boolean = false
+) {
+    IconButton(onClick = {
+        if (valid)
+            onClick()
+    }) {
+        Icon(
+            imageVector = if (isActiveWorkout) Icons.Filled.Done else Icons.Filled.Save,
+            contentDescription = "Save/Update",
+            tint = if (valid) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.error
+        )
+    }
+}
+@Preview
+@Composable
+fun RightHandNavButtonPreview() {
+    AppTopBar(title = "title", backFunction = {  }) {
+        RightHandNavButton(text = "text", onClick = {  })
+    }
+}
+
+
+
+
 @Composable
 fun WorkoutInputForm(
     workoutDetails: WorkoutDetails,
@@ -170,7 +198,7 @@ fun WorkoutInputForm(
     getMore: () -> Unit,
     removeExerciseHolder: (ExerciseHolderItem) -> Unit,
     swapItems: (Int, Int) -> Unit,
-    buttonComposable: @Composable () -> Unit
+    isActiveWorkout: Boolean
 ) {
     DragDropListExercises(
         workoutDetails = workoutDetails,
@@ -178,7 +206,7 @@ fun WorkoutInputForm(
         removeExerciseHolder = removeExerciseHolder,
         swapItems = swapItems,
         getMore = getMore,
-        buttonComposable = buttonComposable,
+        isActiveWorkout = isActiveWorkout,
         nameComposable = {
             TextField(
                 modifier = Modifier
@@ -187,7 +215,14 @@ fun WorkoutInputForm(
                 value = workoutDetails.name,
                 onValueChange = { onValueChange(workoutDetails.copy(name = it)) },
                 label = { Text(text = "Workout Name") }
+
             )
+            if (workoutDetails.name == "")
+                Text(
+                    text = "Must add a name",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
         }
     )
 }

@@ -46,7 +46,7 @@ import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.DropMenu
-import com.example.power.ui.configure.Plan.workout.ReorderableSwipableItem
+import com.example.power.ui.configure.workout.SwipableItem
 import com.example.power.ui.home.Section
 import com.example.power.ui.home.TitleCard
 import com.example.power.ui.home.performHapticFeedback
@@ -147,13 +147,6 @@ fun EditOrAddPlan(
                 enableBack = true,
                 title = title,
                 backFunction = onBack,
-                enableToolTip = true,
-                toolTipMessage = "Swipe a workout to the right or left to delete it",
-                bringUpSnack = { message ->
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(message)
-                    }
-                },
             )
         },
     ) { paddingValues ->
@@ -278,7 +271,7 @@ fun WorkoutsHolder(
     ) {
         items(list, key = { it.uniqueKey }) { item ->
             var isDragging = dragDropListState.currentIndexOfDraggedItem == item.workout.position
-            ReorderableSwipableItem(
+            SwipableItem(
                 modifier = Modifier
                     .composed {
                         val offsetOrNull = dragDropListState.elementDisplacement.takeIf {
@@ -287,7 +280,7 @@ fun WorkoutsHolder(
                         Modifier.graphicsLayer {
                             translationY = offsetOrNull ?: 0f
                         }
-                    },
+                    }.padding(vertical = 4.dp),
                 onDismiss = {
                     removeExerciseHolder(item)
                     list = list.toMutableList() - item
@@ -324,21 +317,22 @@ fun ReorderableWorkoutlist(
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "")
             }
         }) {}
-        WorkoutsHolder(
-            planDetails = planDetails,
-            removeExerciseHolder = removeExerciseHolder,
-            onValueChange = onValueChange,
-            swapItems = swapItems
-        )
         if (planDetails.workouts.isEmpty())
             Text(
                 text = "No workouts were added",
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
-                    .padding(bottom = 10.dp),
+                    .padding(bottom = 20.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error
             )
+        WorkoutsHolder(
+            modifier = Modifier.weight(1f),
+            planDetails = planDetails,
+            removeExerciseHolder = removeExerciseHolder,
+            onValueChange = onValueChange,
+            swapItems = swapItems
+        )
         Box(modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ){

@@ -48,8 +48,7 @@ fun ChooseExercise(
 ) {
     Scaffold(
         topBar = {
-            AppTopBar(enableBack = true, enableMenu = false,
-                title = "Choose Exercise", backFunction = onBack)
+            AppTopBar(enableBack = true, title = "Choose Exercise", backFunction = onBack)
         },
     ) { paddingValues ->
         ExercisePageForWorkout(

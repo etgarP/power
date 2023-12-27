@@ -29,6 +29,14 @@ sealed class WorkoutScreens(val route : String) {
             navArgument("workout_name") { type = NavType.StringType }
         )
     }
+    object StartItem : WorkoutScreens("start_workout") {
+        const val argument = "workout_name"
+        val routeWithArgs = "${route}/{${argument}}"
+        // defining an argument with type string, can define multiple
+        val arguments = listOf(
+            navArgument("workout_name") { type = NavType.StringType }
+        )
+    }
     object AddItem : WorkoutScreens("add_workout")
     object ChooseExercise : WorkoutScreens("choose_exercise")
 }

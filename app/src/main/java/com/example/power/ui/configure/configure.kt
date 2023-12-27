@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -15,6 +17,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +30,7 @@ import com.example.power.ui.configure.Plan.Plans
 import com.example.power.ui.configure.Plan.exercise.AddBtn
 import com.example.power.ui.configure.Plan.exercise.Exercises
 import com.example.power.ui.configure.Plan.workout.Workouts
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -34,10 +39,9 @@ fun Configure(
     editPlan: (String) -> Unit,
     editExercise: (String) -> Unit,
     editWorkout: (String) -> Unit,
-    showSnack: (String) -> Unit,
+    startWorkout: (String) -> Unit,
     navigate: (String) -> Unit,
 ) {
-
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabTexts = listOf("Plans", "Workouts", "Exercises")
     val pagerState = rememberPagerState() { tabTexts.size }
@@ -48,7 +52,15 @@ fun Configure(
         if(!pagerState.isScrollInProgress)
             selectedTabIndex = pagerState.currentPage
     }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val activateSnackBar: (String) -> Unit = { string ->
+        scope.launch {
+            snackbarHostState.showSnackbar(string)
+        }
+    }
     Scaffold (
+        snackbarHost =  { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             when (selectedTabIndex) {
                 0 -> AddBtn(onAdd = { navigate(PlanScreens.AddItem.route)})
@@ -78,11 +90,11 @@ fun Configure(
                     contentAlignment = Alignment.Center
                 ) {
                     if(index == 0) {
-                        Plans(onItemClick = editPlan)
+                        Plans(onEdit = editPlan)
                     } else if(index == 1) {
-                        Workouts(onItemClick = editWorkout, showSnack = showSnack)
+                        Workouts(onEdit = editWorkout, onItemClick = startWorkout, showSnack = activateSnackBar)
                     } else if (index == 2) {
-                        Exercises(onItemClick = editExercise, showSnack = showSnack)
+                        Exercises(onItemClick = editExercise, showSnack = activateSnackBar)
                     }
                 }
             }

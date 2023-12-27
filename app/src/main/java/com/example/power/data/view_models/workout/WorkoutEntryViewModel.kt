@@ -24,6 +24,7 @@ class WorkoutEntryViewModel(private val workoutRepository: WorkoutRepository) : 
      */
     var workoutUiState by mutableStateOf(WorkoutUiState())
         private set
+    var showPreview by mutableStateOf(true)
 
     /**
      * Updates the [workoutUiState] with the value provided in the argument. This method also triggers
@@ -128,7 +129,7 @@ data class WorkoutUiState(
 )
 
 data class ExerciseHolderItem(
-    val exerciseHolder: ExerciseHolder,
+    var exerciseHolder: ExerciseHolder,
     val uniqueKey: String = UUID.randomUUID().toString()
 )
 

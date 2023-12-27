@@ -101,30 +101,30 @@ open class ExerciseHolder(
 ) : Parcelable
 @Parcelize
 data class TimeExercise(
-    var seconds: List<Int> = emptyList(),
+    var seconds: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
     override var exercise: Exercise,
     override var position: Int,
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
 @Parcelize
 data class RepsExercise(
-    var reps: List<Int> = emptyList(),
+    var reps: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
     override var exercise: Exercise,
     override var position: Int,
     ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
 @Parcelize
 data class CardioExercise(
-    var seconds: List<Int> = emptyList(),
-    var km: List<Int> = emptyList(),
+    var seconds: MutableList<Int> = mutableListOf(1),
+    var km: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
     override var position: Int,
     override var exercise: Exercise
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
 @Parcelize
 data class WeightExercise(
-    var weights: List<Int> = emptyList(),
-    var reps: List<Int> = emptyList(),
+    var weights: MutableList<Int> = mutableListOf(1),
+    var reps: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
     override var position: Int,
     override var exercise: Exercise
@@ -149,7 +149,6 @@ data class Workout(
 data class Week(
     var totalNumOfWorkouts: Int = 0,
     var numOfWorkoutsDone: Int = 0,
-    var workoutsDone: List<Boolean> = emptyList()
 )
 
 @Entity(tableName = "plans")
@@ -171,8 +170,15 @@ data class Plan(
             val n = workouts.size
             weeksList = weeksList + Week(
                 totalNumOfWorkouts = n,
-                workoutsDone = List(n) { false }
             )
         }
     }
 }
+data class HistoryItem(val id: Int, val name: String)
+
+data class Info(
+    val username: String,
+    val currentPlan: Plan,
+    val workoutHistory: List<HistoryItem>,
+    val planHistory: List<HistoryItem>
+)

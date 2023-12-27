@@ -100,9 +100,7 @@ fun EditOrAddExercise(
     Scaffold(
         modifier = modifier,
         topBar = {
-            AppTopBar(enableBack = true, enableMenu = false,
-                title = title, backFunction = onBack,
-            )
+            AppTopBar(enableBack = true, title = title, backFunction = onBack)
         },
     ) { paddingValues ->
          Column(

@@ -42,7 +42,7 @@ fun ChoosePlan(
 ) {
     Scaffold(
         topBar = {
-            AppTopBar(enableBack = true, enableMenu = false,
+            AppTopBar(enableBack = true,
                 title = "Choose Workout", backFunction = onBack)
         },
     ) { paddingValues ->
@@ -70,7 +70,8 @@ fun WorkoutPageForPlan(
                     ExerciseComposable(
                         exerciseName = workout.name,
                         numOfExercises = workout.numOfExercises,
-                        onEdit = { onItemClick(workout) },
+                        onEdit = { },
+                        onItemClick = { onItemClick(workout) },
                         onDelete = { },
                         showMore = false
                     )
