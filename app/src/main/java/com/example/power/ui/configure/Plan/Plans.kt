@@ -3,7 +3,7 @@ package com.example.power.ui.configure.Plan
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -57,7 +57,7 @@ fun PlansPage(
     val planViewModel: PlanViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val searchText by planViewModel.searchText.collectAsState()
     val plans by planViewModel.workouts.collectAsState()
-    Column(modifier = modifier.fillMaxHeight()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier.heightIn(10.dp))
         SearchItem(searchVal = searchText, setVal = planViewModel::onSearchTextChange)
         LazyColumn() {

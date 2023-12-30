@@ -7,19 +7,25 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.power.data.Converters
 import com.example.power.data.room.dao.ExerciseDao
+import com.example.power.data.room.dao.InfoDao
 import com.example.power.data.room.dao.PlanDao
 import com.example.power.data.room.dao.WorkoutDao
 
 /**
  * Database class with a singleton Instance object.
  */
-@Database(entities = [Exercise::class, Workout::class, Plan::class], version = 3, exportSchema = false)
+@Database(
+    entities = [Exercise::class, Workout::class, Plan::class, Info::class],
+    version = 1,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun planDao(): PlanDao
+    abstract fun infoDao(): InfoDao
 
     companion object {
         @Volatile

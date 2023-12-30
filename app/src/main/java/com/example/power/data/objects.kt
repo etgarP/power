@@ -177,9 +177,12 @@ data class Plan(
 }
 data class HistoryItem(val id: Int, val name: String)
 
+@Entity(tableName = "info")
 data class Info(
-    val username: String,
-    val currentPlan: Plan,
-    val workoutHistory: List<HistoryItem>,
-    val planHistory: List<HistoryItem>
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
+    val username: String = "User",
+    val currentPlan: Plan? = null,
+    val workoutHistory: List<HistoryItem> = emptyList(),
+    val planHistory: List<HistoryItem> = emptyList()
 )

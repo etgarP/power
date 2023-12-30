@@ -1,16 +1,17 @@
 package com.example.power.ui.workout
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
@@ -46,10 +47,11 @@ import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.DropMenu
+import com.example.power.ui.configure.Plan.workout.RightHandNavButton
 import com.example.power.ui.configure.workout.SwipableItem
-import com.example.power.ui.home.Section
-import com.example.power.ui.home.TitleCard
-import com.example.power.ui.home.performHapticFeedback
+import com.example.power.ui.configure.Section
+import com.example.power.ui.configure.TitleCard
+import com.example.power.ui.configure.performHapticFeedback
 import com.example.power.ui.rememberDragDropListState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -147,6 +149,17 @@ fun EditOrAddPlan(
                 enableBack = true,
                 title = title,
                 backFunction = onBack,
+                endIcon = {
+                    RightHandNavButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                onDone()
+                                onBack()
+                            }
+                        },
+                        valid = valid,
+                    )
+                }
             )
         },
     ) { paddingValues ->
@@ -161,20 +174,6 @@ fun EditOrAddPlan(
                 getMore = getMore,
                 removeWorkout = removeWorkout,
                 swapItems = swapItems,
-                buttonComposable = {
-                    Button(
-                        enabled = valid,
-                        modifier = Modifier.padding(top = 15.dp),
-                        onClick = {
-                            coroutineScope.launch {
-                                onDone()
-                                onBack()
-                            }
-                        }
-                    ) {
-                        Text(text = buttonText)
-                    }
-                }
             )
 
         }
@@ -188,19 +187,17 @@ fun PlanInputForm(
     getMore: () -> Unit,
     removeWorkout: (WorkoutItem) -> Unit,
     swapItems: (Int, Int) -> Unit,
-    buttonComposable: @Composable () -> Unit
 ) {
-    val typesOfPlan = listOf<String>("Cardio Plan","Gym Plan",
-        "Body-Weight Plan", "Dumbbells Plan", "Mixed Plan")
+    val typesOfPlan = listOf<String>("Mixed Plan","Gym Plan",
+        "Body-Weight Plan", "Dumbbells Plan", "Cardio Plan")
     ReorderableWorkoutlist(
         planDetails = planDetails,
         onValueChange = onValueChange,
         removeExerciseHolder = removeWorkout,
         swapItems = swapItems,
-        getMore = getMore,
-        buttonComposable = buttonComposable,
         fields = {
             Column() {
+                Spacer(modifier = Modifier.padding(5.dp))
                 TextField(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -209,6 +206,15 @@ fun PlanInputForm(
                     onValueChange = { onValueChange(planDetails.copy(name = it)) },
                     label = { Text(text = "Plan Name") }
                 )
+                if (planDetails.name == "") {
+                    Spacer(modifier = Modifier.padding(5.dp))
+                    Text(
+                        text = "Must add a name",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
                 DropMenu(
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
@@ -218,12 +224,29 @@ fun PlanInputForm(
                     onValueChange = { type -> onValueChange(planDetails.copy(type = type)) },
                     value = planDetails.type
                 )
+                Section(title = R.string.workouts, tailContent = {
+                    Column(
+                        modifier = Modifier.clickable{ getMore() }
+                    ) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "")
+                    }
+                }) {}
+                if (planDetails.workouts.isEmpty())
+                    Text(
+                        text = "No workouts were added",
+                        modifier = Modifier
+                            .padding(horizontal = 15.dp)
+                            .padding(bottom = 20.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
             }
 
         }
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun WorkoutsHolder(
     modifier: Modifier = Modifier,
@@ -280,7 +303,8 @@ fun WorkoutsHolder(
                         Modifier.graphicsLayer {
                             translationY = offsetOrNull ?: 0f
                         }
-                    }.padding(vertical = 4.dp),
+                    }
+                    .padding(vertical = 4.dp),
                 onDismiss = {
                     removeExerciseHolder(item)
                     list = list.toMutableList() - item
@@ -296,36 +320,17 @@ fun WorkoutsHolder(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun ReorderableWorkoutlist(
     planDetails: PlanDetails,
     removeExerciseHolder: (WorkoutItem) -> Unit,
     onValueChange: (PlanDetails) -> Unit,
     swapItems: (Int, Int) -> Unit,
-    getMore: () -> Unit,
-    buttonComposable : @Composable () -> Unit,
     fields: @Composable () -> Unit
 ) {
 
     Column {
         fields()
-        Section(title = R.string.workouts, tailContent = {
-            Column(
-                modifier = Modifier.clickable{ getMore() }
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = "")
-            }
-        }) {}
-        if (planDetails.workouts.isEmpty())
-            Text(
-                text = "No workouts were added",
-                modifier = Modifier
-                    .padding(horizontal = 15.dp)
-                    .padding(bottom = 20.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error
-            )
         WorkoutsHolder(
             modifier = Modifier.weight(1f),
             planDetails = planDetails,
@@ -333,11 +338,6 @@ fun ReorderableWorkoutlist(
             onValueChange = onValueChange,
             swapItems = swapItems
         )
-        Box(modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ){
-            buttonComposable()
-        }
     }
 }
 

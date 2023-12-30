@@ -15,6 +15,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -249,7 +250,11 @@ fun AddExercisePreview() {
 
 @Composable
 fun AddBtn(modifier: Modifier = Modifier, onAdd: () -> Unit) {
-    FloatingActionButton(modifier = modifier, onClick = { onAdd() }) {
+    FloatingActionButton(
+        modifier = modifier,
+        onClick = { onAdd() },
+        containerColor = MaterialTheme.colorScheme.primary
+    ) {
         Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
     }
 }

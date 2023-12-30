@@ -2,6 +2,8 @@ package com.example.power.data
 
 import androidx.room.TypeConverter
 import com.example.power.data.room.ExerciseHolder
+import com.example.power.data.room.HistoryItem
+import com.example.power.data.room.Plan
 import com.example.power.data.room.PlanType
 import com.example.power.data.room.Week
 import com.example.power.data.room.Workout
@@ -16,6 +18,37 @@ class Converters {
     private val gson: Gson = GsonBuilder()
         .registerTypeAdapter(ExerciseHolder::class.java, ExerciseHolderDeserializer())
         .create()
+
+    @TypeConverter
+    fun fromPlan(plan: Plan?): String? {
+        if (plan == null) {
+            return null
+        }
+        return Gson().toJson(plan)
+    }
+
+    @TypeConverter
+    fun toPlan(planJson: String?): Plan? {
+        if (planJson == null) {
+            return null
+        }
+        val type = object : TypeToken<Plan>() {}.type
+        return Gson().fromJson(planJson, type)
+    }
+
+    @TypeConverter
+    fun fromJson(json: String?): List<HistoryItem>? {
+        if (json == null) {
+            return emptyList()
+        }
+        val type = object : TypeToken<List<HistoryItem>>() {}.type
+        return Gson().fromJson(json, type)
+    }
+
+    @TypeConverter
+    fun toJson(list: List<HistoryItem>?): String {
+        return Gson().toJson(list)
+    }
 
     @TypeConverter
     fun fromExerciseHolderList(exerciseHolders: List<ExerciseHolder>): String {

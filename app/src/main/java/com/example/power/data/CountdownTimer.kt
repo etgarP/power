@@ -29,7 +29,6 @@ class CountdownTimer(
                 if (currentSeconds <= 0) {
                     onFinish.invoke()
                     timer?.cancel()
-                    onFinish()
                 } else {
                     currentSeconds--
                     onTick(getFormattedTime())

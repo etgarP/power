@@ -1,6 +1,5 @@
 package com.example.power.data.room.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -8,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.power.data.room.Exercise
-import com.example.power.data.view_models.exercise.ExerciseDetails
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -95,7 +96,6 @@ fun SearchItem(
         placeholder = { Text(
             text = "Search",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyLarge,
         ) },
         leadingIcon = {
             Icon(imageVector = Icons.Filled.Search,
@@ -137,12 +137,13 @@ fun GoodTextField(
     placeholder: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    fontSize: TextUnit = MaterialTheme.typography.bodyLarge.fontSize
+    fontSize: TextUnit = MaterialTheme.typography.bodyLarge.fontSize,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant
 ) {
 
     BasicTextField(modifier = modifier
         .background(
-            MaterialTheme.colorScheme.surfaceVariant,
+            backgroundColor,
             RoundedCornerShape(5.dp),
         ),
         value = value,
@@ -156,7 +157,11 @@ fun GoodTextField(
             fontSize = fontSize
         ),
         decorationBox = {
-            Column (modifier, horizontalAlignment = Alignment.CenterHorizontally){
+            Column (
+                modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ){
                 Row(
                     Modifier.padding(5.dp),
                     verticalAlignment = Alignment.CenterVertically,

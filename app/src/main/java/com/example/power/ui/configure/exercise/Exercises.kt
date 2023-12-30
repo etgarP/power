@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -86,7 +86,7 @@ fun Exercises(
     val typeActive: (String) -> Boolean  = { body -> selectedType == body || !typeSelected }
     val bodyActive: (String) -> Boolean =
         { type -> (selectedPart == type || !partSelected) && typeSelected }
-    Column(modifier = modifier.fillMaxHeight()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier.heightIn(10.dp))
         SearchItem(searchVal = searchText, setVal = exercisesViewModel::onSearchTextChange)
         ExerciseFilterRow(typeActive = typeActive, bodyActive = bodyActive,

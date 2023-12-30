@@ -62,16 +62,15 @@ fun EditWorkout(
     viewModel.updateUiState(viewModel.workoutUiState.workoutDetails)
     EditOrAddWorkout(
         modifier = modifier,
-        onBack = onBack,
-        onValueChange = viewModel::updateUiState,
-        workoutDetails = viewModel.workoutUiState.workoutDetails,
-        valid = viewModel.workoutUiState.isEntryValid,
-        removeExerciseHolder = viewModel::removeExercise,
-        onDone = viewModel::updateWorkout,
         title = "Edit Workout",
+        onBack = onBack,
+        workoutDetails = viewModel.workoutUiState.workoutDetails,
+        onValueChange = viewModel::updateUiState,
+        valid = viewModel.workoutUiState.isEntryValid,
+        onDone = viewModel::updateWorkout,
         getMore = getMore,
+        removeExerciseHolder = viewModel::removeExercise,
         swapItems = viewModel::reorderList
-
     )
 }
 
@@ -88,14 +87,14 @@ fun AddWorkout(
     viewModel.updateUiState(viewModel.workoutUiState.workoutDetails)
     EditOrAddWorkout(
         modifier = modifier,
-        onBack = onBack,
-        onValueChange = viewModel::updateUiState,
-        workoutDetails = viewModel.workoutUiState.workoutDetails,
-        valid = viewModel.workoutUiState.isEntryValid,
-        removeExerciseHolder = viewModel::removeExercise,
-        onDone = viewModel::saveWorkout,
         title = "Add Workout",
+        onBack = onBack,
+        workoutDetails = viewModel.workoutUiState.workoutDetails,
+        onValueChange = viewModel::updateUiState,
+        valid = viewModel.workoutUiState.isEntryValid,
+        onDone = viewModel::saveWorkout,
         getMore = getMore,
+        removeExerciseHolder = viewModel::removeExercise,
         swapItems = viewModel::reorderList
 
     )
@@ -114,7 +113,8 @@ fun EditOrAddWorkout(
     getMore: () -> Unit,
     removeExerciseHolder: (ExerciseHolderItem) -> Unit,
     swapItems: (Int, Int) -> Unit,
-    isActiveWorkout: Boolean = false
+    isActiveWorkout: Boolean = false,
+    onDoneActive: () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -133,7 +133,9 @@ fun EditOrAddWorkout(
                         onClick = {
                             coroutineScope.launch {
                                 onDone()
-                                onBack()
+                                if (!isActiveWorkout)
+                                    onBack()
+                                else onDoneActive()
                             }
                         },
                         valid = valid,
@@ -209,6 +211,7 @@ fun WorkoutInputForm(
         getMore = getMore,
         isActiveWorkout = isActiveWorkout,
         nameComposable = {
+            Spacer(modifier = Modifier.padding(5.dp))
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -221,7 +224,7 @@ fun WorkoutInputForm(
                 val value =
                     if (workoutDetails.secsBreak == 0) ""
                     else workoutDetails.secsBreak.toString()
-                Spacer(modifier = Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.padding(5.dp))
                 TextField(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -240,12 +243,16 @@ fun WorkoutInputForm(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
             }
-            if (workoutDetails.name == "")
+            if (workoutDetails.name == "") {
+                Spacer(modifier = Modifier.padding(5.dp))
                 Text(
                     text = "Must add a name",
                     color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 10.dp)
                 )
+            }
         }
     )
+    Spacer(modifier = Modifier.padding(50.dp))
 }

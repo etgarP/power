@@ -4,7 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -65,7 +65,7 @@ fun WorkoutsPage(
     val workoutViewModel: WorkoutViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val searchText by workoutViewModel.searchText.collectAsState()
     val workouts by workoutViewModel.workouts.collectAsState()
-    Column(modifier = modifier.fillMaxHeight()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier.heightIn(10.dp))
         SearchItem(searchVal = searchText, setVal = workoutViewModel::onSearchTextChange)
         LazyColumn() {

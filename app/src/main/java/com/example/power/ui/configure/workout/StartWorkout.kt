@@ -1,5 +1,6 @@
 package com.example.power.ui.configure.workout
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
+import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
 import com.example.power.ui.configure.Plan.workout.EditOrAddWorkout
 
 @Composable
@@ -81,11 +84,29 @@ fun OnGoingWorkout(
             IntOffset(+180, 0)
         },
     ) {
+        var openAlertDialog by remember { mutableStateOf(false) }
+        when {
+            openAlertDialog -> {
+                MyAlertDialog(
+                    onDismissRequest = { openAlertDialog = false },
+                    onConfirmation = {
+                        onBack()
+                        openAlertDialog = false
+                    },
+                    dialogTitle = "Cancel Workout",
+                    dialogText = "Are you sure you want to leave this workout?",
+                    icon = Icons.Filled.Cancel
+                )
+            }
+        }
+        BackHandler {
+            openAlertDialog = true
+        }
         if (!viewModel.showPreview) {
             viewModel.updateUiState(viewModel.workoutUiState.workoutDetails)
             EditOrAddWorkout(
                 modifier = modifier,
-                onBack = onBack,
+                onBack = { openAlertDialog = true },
                 onValueChange = viewModel::updateUiState,
                 workoutDetails = viewModel.workoutUiState.workoutDetails,
                 valid = viewModel.workoutUiState.isEntryValid,
@@ -95,7 +116,9 @@ fun OnGoingWorkout(
                 getMore = getMore,
                 swapItems = viewModel::reorderList,
                 isActiveWorkout = true
-            )
+            ) {
+                onBack()
+            }
         }
     }
 }
@@ -130,7 +153,8 @@ fun WorkoutPreviewPage(
             }
             ExtendedFloatingActionButton(
                 onClick = { onStart() },
-                modifier = Modifier.padding(25.dp)
+                modifier = Modifier.padding(25.dp),
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Text(text = "Start", style = MaterialTheme.typography.bodyLarge)
                 Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = "Start Workout")

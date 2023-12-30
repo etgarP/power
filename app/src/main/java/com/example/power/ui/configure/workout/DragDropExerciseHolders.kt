@@ -33,8 +33,8 @@ import com.example.power.R
 import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutDetails
 import com.example.power.ui.configure.workout.ExerciseHolderComposable
-import com.example.power.ui.home.Section
-import com.example.power.ui.home.performHapticFeedback
+import com.example.power.ui.configure.Section
+import com.example.power.ui.configure.performHapticFeedback
 import com.example.power.ui.rememberDragDropListState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

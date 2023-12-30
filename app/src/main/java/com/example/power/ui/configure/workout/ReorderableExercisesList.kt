@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DismissDirection
@@ -57,7 +58,7 @@ import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.ui.GoodTextField
 import com.example.power.ui.PowerNotificationService
-import com.example.power.ui.home.OutlinedCard
+import com.example.power.ui.configure.OutlinedCard
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -424,8 +425,6 @@ fun GeneralExerciseComposable(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .background(color = MaterialTheme.colorScheme.background)
-
                     ) {
                         Text(
                             text = "Set",
@@ -436,14 +435,14 @@ fun GeneralExerciseComposable(
                         )
                         Text(
                             text = firstCategoryName,
-                            modifier = Modifier.width(60.dp),
+                            modifier = Modifier.widthIn(60.dp),
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         if (isSecondCategory) {
                             Text(
                                 text = secondCategoryName,
-                                modifier = Modifier.width(60.dp),
+                                modifier = Modifier.widthIn(60.dp),
                                 textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.width(12.dp))
@@ -462,6 +461,8 @@ fun GeneralExerciseComposable(
                     val notificationService = PowerNotificationService(LocalContext.current)
                     for (i in 0 until setsNum) {
                         SetsRow(
+                            modifier = if (!isActiveWorkout) Modifier.padding(vertical = 4.dp)
+                                else Modifier,
                             i = i,
                             atFirstCategoryChange = atFirstCategoryChange,
                             atSecondCategoryChange = atSecondCategoryChange,
@@ -515,6 +516,8 @@ fun GoodOutlinedButton(
     onClick: () -> Unit,
     text: String,
     textColor: Color = MaterialTheme.colorScheme.primary,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
     endComposable: @Composable () -> Unit = {}
 ) {
         OutlinedButton(
@@ -522,10 +525,10 @@ fun GoodOutlinedButton(
             onClick = onClick,
             border = BorderStroke(
                 ButtonDefaults.OutlinedBorderSize,
-                MaterialTheme.colorScheme.outlineVariant
+                borderColor
             ),
             colors = ButtonDefaults.outlinedButtonColors(
-                backgroundColor = MaterialTheme.colorScheme.surface
+                backgroundColor = backgroundColor
             )
         ) {
             Text(text = text, color = textColor)
@@ -537,6 +540,7 @@ fun GoodOutlinedButton(
 
 @Composable
 fun SetsRow(
+    modifier: Modifier = Modifier,
     i: Int,
     atFirstCategoryChange: (Int, String) -> Unit,
     atSecondCategoryChange: (Int, String) -> Unit,
@@ -551,13 +555,13 @@ fun SetsRow(
     var checked by remember { mutableStateOf(false) }
     val color by animateColorAsState(
         targetValue =
-            if (checked) MaterialTheme.colorScheme.surfaceVariant
-            else MaterialTheme.colorScheme.background,
+            if (checked) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surface,
         label = "checked row color"
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.background(color = color)
+        modifier = modifier.background(color = color)
     ) {
         Text(
             text = "$i  ",
@@ -601,7 +605,7 @@ fun PreviewExerciseHolder() {
     Column {
         GeneralExerciseComposable(
             modifier = Modifier,
-            isActiveWorkout = true,
+            isActiveWorkout = false,
             exerciseName = "exerciseName",
             isDraggingThis = false,
             onDismiss = {},

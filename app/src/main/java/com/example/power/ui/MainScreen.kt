@@ -8,11 +8,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,11 +30,14 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -77,10 +85,19 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf(0) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    var inWorkout by remember { mutableStateOf(false) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            AnimatedVisibility(selectedItem != 4) {
+            AnimatedVisibility(
+                visible = !inWorkout,
+                enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
+                    IntOffset(0, +180)
+                },
+                exit = slideOut(tween(100, easing = FastOutSlowInEasing)) {
+                    IntOffset(0, +180)
+                }
+            ) {
                 NavBar(
                     onClick = { inputRoute ->
                         navController.navigate(inputRoute) {
@@ -97,19 +114,22 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
         },
     ) { paddingValues ->
-        appNavHost(
+        AppNavHost(
             paddingValues = paddingValues,
             navController = navController,
             setSelectedItem = {selectedItem = it},
-        )
+        ) {
+            inWorkout = it
+        }
     }
 }
 
 @Composable
-fun appNavHost(
+fun AppNavHost(
     paddingValues: PaddingValues,
     navController: NavHostController,
     setSelectedItem: (Int) -> Unit,
+    setInWorkout: (Boolean) -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -163,6 +183,7 @@ fun appNavHost(
                 },
                 startWorkout = { workoutName ->
                     navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
+                    setInWorkout(true)
                 },
                 navigate = navController::navigate
             )
@@ -352,12 +373,14 @@ fun appNavHost(
                 }
             }
         ) { navBackResult ->
-            setSelectedItem(2)
             val workoutName =
                 navBackResult.arguments?.getString(WorkoutScreens.StartItem.argument)
             OnGoingWorkout(
                 workoutName = workoutName,
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    navController.popBackStack()
+                    setInWorkout(false)
+                 },
                 getMore = { navController.navigate(WorkoutScreens.ChooseExercise.route) },
                 getExercise = {
                     val exercise = navBackResult.savedStateHandle.get<Exercise>("exercise")
@@ -476,28 +499,32 @@ fun AppTopBar(
     endIcon: @Composable () -> Unit = {}
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        navigationIcon = {
-            if (enableBack)
-                IconButton(onClick = { backFunction() }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Localized description"
-                    )
-                }
-        },
-        actions = {
-            endIcon()
-        },
-        scrollBehavior = scrollBehavior,
-    )
+    Column {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            navigationIcon = {
+                if (enableBack)
+                    IconButton(onClick = { backFunction() }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Localized description"
+                        )
+                    }
+            },
+            actions = {
+                endIcon()
+            },
+            scrollBehavior = scrollBehavior,
+        )
+        Divider()
+    }
+
 }
 
 @Composable
@@ -546,6 +573,7 @@ fun NavBar(
     NavigationBar(modifier) {
         navBarItems.forEachIndexed { index, item ->
             NavigationBarItem(
+                colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.primaryContainer),
                 icon = {
                     if (index == selectedItem)
                         Icon(imageVector = item.selectedIcon, contentDescription = item.label)

@@ -131,7 +131,7 @@ data class PlanDetails(
     var id: Int = 0,
     var name: String = "",
     var workouts: List<WorkoutItem> = emptyList(),
-    var type: String = "Body-Weight Plan"
+    var type: String = "Mixed Plan"
 )
 
 /**
