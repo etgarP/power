@@ -24,6 +24,7 @@ import com.example.power.ui.configure.Section
 @Preview(showBackground = true)
 @Composable
 fun Home(modifier: Modifier = Modifier) {
+//    var inQuickStart by remember {mutable}
     PlanQuickStart()
 }
 

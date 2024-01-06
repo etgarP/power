@@ -97,12 +97,14 @@ open class Exercise(
 open class ExerciseHolder(
     @Transient open var position: Int = 0,
     @Transient open var sets: Int = 1,
+    @Transient open var breakTime: Int = 60,
     @Transient open var exercise: Exercise = Exercise(1, ExerciseType.WEIGHT, BodyType.BACK, "")
 ) : Parcelable
 @Parcelize
 data class TimeExercise(
     var seconds: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
+    override var breakTime: Int = 60,
     override var exercise: Exercise,
     override var position: Int,
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
@@ -110,6 +112,7 @@ data class TimeExercise(
 data class RepsExercise(
     var reps: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
+    override var breakTime: Int = 60,
     override var exercise: Exercise,
     override var position: Int,
     ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
@@ -118,14 +121,16 @@ data class CardioExercise(
     var seconds: MutableList<Int> = mutableListOf(1),
     var km: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
+    override var breakTime: Int = 60,
     override var position: Int,
     override var exercise: Exercise
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
 @Parcelize
 data class WeightExercise(
-    var weights: MutableList<Int> = mutableListOf(1),
+    var weights: MutableList<Double> = mutableListOf(1.0),
     var reps: MutableList<Int> = mutableListOf(1),
     override var sets: Int = 1,
+    override var breakTime: Int = 60,
     override var position: Int,
     override var exercise: Exercise
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
@@ -139,7 +144,6 @@ data class Workout(
     var exercises: List<ExerciseHolder> = emptyList(),
     var numOfExercises: Int = exercises.size,
     var position: Int = 0,
-    var breakTimeSecs: Int = 60
 ) : Parcelable, Serializable {
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)

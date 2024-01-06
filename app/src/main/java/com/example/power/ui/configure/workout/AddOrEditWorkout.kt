@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Save
@@ -27,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -211,38 +209,40 @@ fun WorkoutInputForm(
         getMore = getMore,
         isActiveWorkout = isActiveWorkout,
         nameComposable = {
-            Spacer(modifier = Modifier.padding(5.dp))
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                value = workoutDetails.name,
-                onValueChange = { onValueChange(workoutDetails.copy(name = it)) },
-                label = { Text(text = "Workout Name") }
-            )
-            if (isActiveWorkout) {
-                val value =
-                    if (workoutDetails.secsBreak == 0) ""
-                    else workoutDetails.secsBreak.toString()
+            if (!isActiveWorkout) {
                 Spacer(modifier = Modifier.padding(5.dp))
                 TextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp),
-                    value = value,
-                    onValueChange = {
-                        try {
-                            val change = it.toInt()
-                            val num = if (change >= 3600) 3599 else change
-                            onValueChange(workoutDetails.copy(secsBreak = num))
-                        } catch (e: Exception) {
-                            onValueChange(workoutDetails.copy(secsBreak = 0))
-                        }
-                    },
-                    label = { Text(text = "Break-time (seconds)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    value = workoutDetails.name,
+                    onValueChange = { onValueChange(workoutDetails.copy(name = it)) },
+                    label = { Text(text = "Workout Name") }
                 )
             }
+//            if (isActiveWorkout) {
+//                val value =
+//                    if (workoutDetails.secsBreak == 0) ""
+//                    else workoutDetails.secsBreak.toString()
+//                Spacer(modifier = Modifier.padding(5.dp))
+//                TextField(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 10.dp),
+//                    value = value,
+//                    onValueChange = {
+//                        try {
+//                            val change = it.toInt()
+//                            val num = if (change >= 3600) 3599 else change
+//                            onValueChange(workoutDetails.copy(secsBreak = num))
+//                        } catch (e: Exception) {
+//                            onValueChange(workoutDetails.copy(secsBreak = 0))
+//                        }
+//                    },
+//                    label = { Text(text = "Break-time (seconds)") },
+//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//                )
+//            }
             if (workoutDetails.name == "") {
                 Spacer(modifier = Modifier.padding(5.dp))
                 Text(

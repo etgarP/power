@@ -265,6 +265,8 @@ fun MyAlertDialog(
     dialogTitle: String,
     dialogText: String,
     icon: ImageVector,
+    textYes: String = "Confirm",
+    textNo: String = "Dismiss",
 ) {
     AlertDialog(
         icon = {
@@ -285,7 +287,7 @@ fun MyAlertDialog(
                     onConfirmation()
                 }
             ) {
-                Text("Confirm")
+                Text(textYes)
             }
         },
         dismissButton = {
@@ -294,7 +296,7 @@ fun MyAlertDialog(
                     onDismissRequest()
                 }
             ) {
-                Text("Dismiss")
+                Text(textNo)
             }
         }
     )
@@ -321,16 +323,16 @@ fun ButtomSheetItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .padding(bottom = 15.dp)
             .clickable { onItemClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { }) {
-            Icon(imageVector = imageVector, contentDescription = text)
-        }
+        Icon(
+            imageVector = imageVector,
+            contentDescription = text,
+            modifier = Modifier.padding(vertical = 20.dp).padding(start = 25.dp)
+        )
         Text(
-            modifier = Modifier.padding(horizontal = 10.dp),
+            modifier = Modifier.padding(vertical = 20.dp, horizontal = 15.dp),
             text = text
         )
     }

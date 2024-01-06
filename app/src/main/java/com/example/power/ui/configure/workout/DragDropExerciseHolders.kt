@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import com.example.power.R
 import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutDetails
-import com.example.power.ui.configure.workout.ExerciseHolderComposable
 import com.example.power.ui.configure.Section
 import com.example.power.ui.configure.performHapticFeedback
+import com.example.power.ui.configure.workout.ExerciseHolderComposable
 import com.example.power.ui.rememberDragDropListState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -94,10 +94,12 @@ fun onlyExercises(
         else modifier,
         state = dragDropListState.lazyListState
     ) {
-        if (!reorderable)
+        if (!reorderable) {
             item {
                 topComposable()
             }
+        }
+
         items(list, key = { it.uniqueKey }) { item ->
             var isDragging = dragDropListState.currentIndexOfDraggedItem == item.exerciseHolder.position
 
@@ -113,7 +115,7 @@ fun onlyExercises(
                                 translationY = offsetOrNull ?: 0f
                             }
                         }
-                else Modifier.animateItemPlacement(),
+                else Modifier,
                 onDismiss = {
                     removeExerciseHolder(item)
                     list = list.toMutableList() - item
@@ -127,7 +129,17 @@ fun onlyExercises(
                 },
                 reorderable = reorderable,
                 isActiveWorkout = isActiveWorkout,
-                breakTime = workoutDetails.secsBreak
+                breakSet = item.exerciseHolder.breakTime,
+                whenBreakChange = { numString ->
+                    try {
+                        val change = numString.toInt()
+                        val num = if (change >= 3600) 3599 else change
+                        item.exerciseHolder.breakTime = num
+                        onValueChange(workoutDetails.copy(exercises = list))
+                    } catch (e: Exception) {
+//                        onValueChange(workoutDetails.copy())
+                    }
+                }
             )
         }
     }

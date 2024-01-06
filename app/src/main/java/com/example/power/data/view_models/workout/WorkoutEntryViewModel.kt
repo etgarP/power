@@ -144,7 +144,6 @@ data class WorkoutDetails(
     var id: Int = 0,
     var name: String = "",
     var exercises: List<ExerciseHolderItem> = emptyList(),
-    var secsBreak: Int = 60
 ) {
     fun addExercise(exercise: ExerciseHolder) {
         exercise.position = exercises.size
@@ -162,7 +161,6 @@ fun WorkoutDetails.toWorkout(): Workout = Workout(
     name = name,
     exercises = toExerciseHolderList(exercises),
     numOfExercises = exercises.size,
-    breakTimeSecs = secsBreak
 )
 
 /**
@@ -180,5 +178,4 @@ fun Workout.toWorkoutDetails(): WorkoutDetails = WorkoutDetails(
     id = id,
     name = name,
     exercises = toExerciseHolderItemList(exercises),
-    secsBreak = breakTimeSecs
 )

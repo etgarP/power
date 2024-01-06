@@ -112,7 +112,7 @@ fun OnGoingWorkout(
                 valid = viewModel.workoutUiState.isEntryValid,
                 removeExerciseHolder = viewModel::removeExercise,
                 onDone = viewModel::updateWorkout,
-                title = "",
+                title = viewModel.workoutUiState.workoutDetails.name,
                 getMore = getMore,
                 swapItems = viewModel::reorderList,
                 isActiveWorkout = true

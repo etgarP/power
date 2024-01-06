@@ -29,17 +29,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.rememberDismissState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +64,9 @@ import com.example.power.data.room.WeightExercise
 import com.example.power.ui.GoodTextField
 import com.example.power.ui.PowerNotificationService
 import com.example.power.ui.configure.OutlinedCard
+import com.example.power.ui.configure.Plan.exercise.ButtomSheetItem
+import com.example.power.ui.configure.Plan.exercise.DissmissSheet
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -138,12 +146,29 @@ data class Set (
 
 fun setToList(list1: List<Int>, list2: List<Int>?) : List<Set> {
     val list : MutableList<Set> = mutableListOf()
-    for (i in 0 until list1.size) {
+    for (i in list1.indices) {
         val set = list2?.let { Set(list1.elementAt(i), it.elementAt(i)) }
         if (set != null)
             list.add(set)
         else
             list.add(Set(list1.elementAt(i), 0))
+    }
+    return list
+}
+
+data class SetWight (
+    val first : Double,
+    val second : Int
+)
+
+fun setToListWeight(list1: List<Double>, list2: List<Int>?) : List<SetWight> {
+    val list : MutableList<SetWight> = mutableListOf()
+    for (i in list1.indices) {
+        val set = list2?.let { SetWight(list1.elementAt(i), it.elementAt(i)) }
+        if (set != null)
+            list.add(set)
+        else
+            list.add(SetWight(list1.elementAt(i), 0))
     }
     return list
 }
@@ -157,9 +182,21 @@ fun ExerciseHolderComposable(
     onDismiss: () -> Unit,
     reorderable: Boolean,
     isActiveWorkout: Boolean,
-    breakTime: Int
+    breakSet: Int,
+    whenBreakChange: (String) -> Unit
 ) {
     var setsNum by remember { mutableIntStateOf(exerciseHolder.sets) }
+    var breakTime by remember { mutableStateOf("$breakSet") }
+    var onBreakChange : (String) -> Unit = {
+        breakTime = try {
+            val change = it.toInt()
+            val num = if (change >= 3600) 3599 else change
+            "$num"
+        } catch (e: Exception) {
+            ""
+        }
+        whenBreakChange(it)
+    }
 
     when (exerciseHolder) {
         is TimeExercise -> {
@@ -202,8 +239,9 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                setsList = setList,
-                breakTime = breakTime
+                sets = setList,
+                breakTime = breakTime,
+                onBreakChange = onBreakChange
             )
         }
 
@@ -218,6 +256,7 @@ fun ExerciseHolderComposable(
                 setsNum = setsNum,
                 isSecondCategory = false,
                 firstCategoryName = "Reps",
+                sets = setList,
                 atFirstCategoryChange = { index, string ->
                     try {
                         exerciseHolder.reps[index] = string.toInt()
@@ -228,7 +267,6 @@ fun ExerciseHolderComposable(
                         setList = setToList(exerciseHolder.reps, null)
                     }
                 },
-                setsList = setList,
                 atAddSet = {
                     exerciseHolder.reps.add(exerciseHolder.reps[setsNum-1])
                     setList = setToList(exerciseHolder.reps, null)
@@ -248,7 +286,8 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                breakTime = breakTime
+                breakTime = breakTime,
+                onBreakChange = onBreakChange
             )
         }
 
@@ -262,6 +301,7 @@ fun ExerciseHolderComposable(
                 onDismiss = onDismiss,
                 setsNum = setsNum,
                 firstCategoryName = "Secs",
+                sets = setList,
                 secondCategoryName = "Km",
                 atFirstCategoryChange = { index, string ->
                     try {
@@ -283,7 +323,6 @@ fun ExerciseHolderComposable(
                         setList = setToList(exerciseHolder.seconds, exerciseHolder.km)
                     }
                 },
-                setsList = setList,
                 atAddSet = {
                     exerciseHolder.seconds.add(exerciseHolder.seconds[setsNum-1])
                     exerciseHolder.km.add(exerciseHolder.km[setsNum-1])
@@ -305,12 +344,14 @@ fun ExerciseHolderComposable(
                     }
                 },
                 reorderable = reorderable,
-                breakTime = breakTime
+                breakTime = breakTime,
+                onBreakChange = onBreakChange
             )
         }
 
         is WeightExercise -> {
-            var setList by remember { mutableStateOf(setToList(exerciseHolder.weights, exerciseHolder.reps)) }
+            var setList by remember { mutableStateOf(setToListWeight(exerciseHolder.weights, exerciseHolder.reps)) }
+            val scope = rememberCoroutineScope()
             GeneralExerciseComposable(
                 modifier = modifier,
                 isActiveWorkout = isActiveWorkout,
@@ -319,16 +360,21 @@ fun ExerciseHolderComposable(
                 onDismiss = onDismiss,
                 setsNum = setsNum,
                 firstCategoryName = "Weight",
+                setsWeight = setList,
                 secondCategoryName = "Reps",
                 atFirstCategoryChange = { index, string ->
-                    try {
-                        exerciseHolder.weights[index] = string.toInt()
-                    } catch (e: Exception) {
-                        exerciseHolder.weights[index] = 0
-                    } finally {
-                        setExerciseHolder(exerciseHolder)
-                        setList = setToList(exerciseHolder.weights, exerciseHolder.reps)
+                    scope.launch {
+                        try {
+                            exerciseHolder.weights[index] = string.toDouble()
+                        } catch (e: Exception) {
+                            if (string == "")
+                                exerciseHolder.weights[index] = 0.0
+                        } finally {
+                            setExerciseHolder(exerciseHolder)
+                            setList = setToListWeight(exerciseHolder.weights, exerciseHolder.reps)
+                        }
                     }
+
                 },
                 atSecondCategoryChange = { index, string ->
                     try {
@@ -337,14 +383,13 @@ fun ExerciseHolderComposable(
                         exerciseHolder.reps[index] = 0
                     } finally {
                         setExerciseHolder(exerciseHolder)
-                        setList = setToList(exerciseHolder.weights, exerciseHolder.reps)
+                        setList = setToListWeight(exerciseHolder.weights, exerciseHolder.reps)
                     }
                 },
-                setsList = setList,
                 atAddSet = {
                     exerciseHolder.weights.add(exerciseHolder.weights[setsNum-1])
                     exerciseHolder.reps.add(exerciseHolder.reps[setsNum-1])
-                    setList = setToList(exerciseHolder.weights, exerciseHolder.reps)
+                    setList = setToListWeight(exerciseHolder.weights, exerciseHolder.reps)
                     exerciseHolder.sets += 1
                     setExerciseHolder(exerciseHolder)
                     setsNum += 1
@@ -355,20 +400,104 @@ fun ExerciseHolderComposable(
                     } else {
                         exerciseHolder.weights.removeAt(index)
                         exerciseHolder.reps.removeAt(index)
-                        setList = setToList(exerciseHolder.weights, exerciseHolder.reps)
+                        setList = setToListWeight(exerciseHolder.weights, exerciseHolder.reps)
                         exerciseHolder.sets -= 1
                         setExerciseHolder(exerciseHolder)
                         setsNum -= 1
                     }
                 },
                 reorderable = reorderable,
-                breakTime = breakTime
+                breakTime = breakTime,
+                onBreakChange = onBreakChange
             )
         }
 
     }
 }
 
+@Composable
+fun ButtonSheetBreakItem() {
+    
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomSheetInWorkout(
+    onAddSet : () -> Unit,
+    onRemoveSet : () -> Unit,
+    onBreakChange : (String) -> Unit = {},
+    breakTime: String,
+    setShowBottomSheet : (Boolean) -> Unit,
+    showBottomSheet: Boolean
+) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                setShowBottomSheet(false)
+            },
+            sheetState = sheetState
+        ) {
+            Column(modifier = Modifier.padding(bottom = 40.dp)) {
+                ButtomSheetItem(
+                    imageVector = Icons.Filled.Add,
+                    text = "Add Set"
+                ) {
+                    DissmissSheet(scope, sheetState) { setShowBottomSheet(it) }
+                    onAddSet()
+                }
+                ButtomSheetItem(
+                    imageVector = Icons.Filled.Remove,
+                    text = "Remove Set",
+                ) {
+                    DissmissSheet(scope, sheetState) { setShowBottomSheet(it) }
+                    onRemoveSet()
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 25.dp, vertical = 20.dp)
+                ) {
+                    Text(
+                        text = "Set Break Time:",
+                        modifier = Modifier.weight(1f)
+                    )
+                    GoodTextField(
+                        value = breakTime,
+                        onValueChange = { numString ->
+                            onBreakChange(numString)
+                        },
+                        modifier = Modifier.width(60.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OnActiveExerciseButton(
+    onAddSet: () -> Unit,
+    onRemoveSet: () -> Unit,
+    onBreakChange: (String) -> Unit,
+    breakTime: String
+) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    IconButton(onClick = { showBottomSheet = true }) {
+        Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "more workout")
+    }
+    BottomSheetInWorkout(
+        setShowBottomSheet = { showBottomSheet = it },
+        showBottomSheet = showBottomSheet,
+        onAddSet = onAddSet,
+        onRemoveSet = onRemoveSet,
+        onBreakChange = onBreakChange,
+        breakTime = breakTime
+    )
+}
 
 
 @Composable
@@ -381,17 +510,19 @@ fun GeneralExerciseComposable(
     setsNum: Int,
     isSecondCategory: Boolean = true,
     firstCategoryName: String,
+    setsWeight: List<SetWight>? = null,
+    sets: List<Set>? = null,
     secondCategoryName: String = "",
     atFirstCategoryChange: (Int, String) -> Unit,
     atSecondCategoryChange: (Int, String) -> Unit = { _, _ -> },
-    setsList: List<Set>,
     atAddSet: () -> Unit,
     removeSetFromIndex: (Int) -> Unit,
     reorderable: Boolean,
-    breakTime: Int
+    breakTime: String,
+    onBreakChange: (String) -> Unit
 ) {
     var showBreak by remember { mutableStateOf(false) }
-    val timer by remember { mutableStateOf(CountdownTimer(breakTime))  }
+    val timer by remember { mutableStateOf(CountdownTimer(breakTime.toInt()))  }
     var time by remember { mutableStateOf(timer.getFormattedTime()) }
     OutlinedCard(
         padding = false,
@@ -411,12 +542,22 @@ fun GeneralExerciseComposable(
                         Icon(imageVector = Icons.Filled.Close, contentDescription = "Close Exercise")
                     }
                 else {
-                    IconButton(onClick = { removeSetFromIndex(setsNum - 1) }) {
-                        Icon(imageVector = Icons.Filled.Remove, contentDescription = "Remove Set")
+                    if (isActiveWorkout) {
+                        OnActiveExerciseButton(
+                            onRemoveSet = { removeSetFromIndex(setsNum - 1) },
+                            onAddSet = { atAddSet() },
+                            onBreakChange = onBreakChange,
+                            breakTime = breakTime
+                        )
+                    } else {
+                        IconButton(onClick = { removeSetFromIndex(setsNum - 1) }) {
+                            Icon(imageVector = Icons.Filled.Remove, contentDescription = "Remove Set")
+                        }
+                        IconButton(onClick = { atAddSet() }) {
+                            Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Set")
+                        }
                     }
-                    IconButton(onClick = { atAddSet() }) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add Set")
-                    }
+
                 }
             }
             AnimatedVisibility (!reorderable) {
@@ -466,13 +607,16 @@ fun GeneralExerciseComposable(
                             i = i,
                             atFirstCategoryChange = atFirstCategoryChange,
                             atSecondCategoryChange = atSecondCategoryChange,
-                            firstVal = setsList[i].first,
+                            firstValDouble = if (setsWeight != null) setsWeight[i].first else -1.0,
+                            firstValInt = if (sets != null) sets[i].first else -1,
                             isSecondCategory = isSecondCategory,
-                            secondVal = setsList[i].second,
+                            secondVal = if (setsWeight != null) setsWeight[i].second
+                                else if (sets != null) sets[i].second
+                                else -1,
                             isActiveWorkout = isActiveWorkout
                         ) {
                             showBreak = true
-                            timer.loadTime(breakTime)
+                            timer.loadTime(breakTime.toInt())
                             timer.start(
                                 onTick = { time = it },
                                 onFinish = {
@@ -545,12 +689,25 @@ fun SetsRow(
     atFirstCategoryChange: (Int, String) -> Unit,
     atSecondCategoryChange: (Int, String) -> Unit,
     isSecondCategory: Boolean,
-    firstVal: Int,
+    firstValDouble: Double = -1.0,
+    firstValInt: Int = -1,
     secondVal: Int,
     isActiveWorkout: Boolean = false,
     onStart: () -> Unit
 ) {
-    val first = if (firstVal == 0) "" else "$firstVal"
+    var firstDouble by remember {
+        mutableStateOf(
+            when (firstValDouble) {
+                -1.0 -> if (firstValInt == 0) "" else "$firstValInt"
+                else -> if (firstValDouble == 0.0) "" else "$firstValDouble"
+            }
+        )
+    }
+    var firstInt = when (firstValDouble) {
+        -1.0 -> if (firstValInt == 0) "" else "$firstValInt"
+        else -> if (firstValDouble == 0.0) "" else "$firstValDouble"
+    }
+
     val second = if (secondVal == 0) "" else "$secondVal"
     var checked by remember { mutableStateOf(false) }
     val color by animateColorAsState(
@@ -570,12 +727,26 @@ fun SetsRow(
                 .weight(1f)
                 .padding(horizontal = 12.dp)
         )
-        GoodTextField(
-            value = first,
-            onValueChange = { atFirstCategoryChange(i, it) },
-            modifier = Modifier.width(60.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
+        if (firstValDouble != -1.0)
+            GoodTextField(
+                value = firstDouble,
+                onValueChange = {
+                    atFirstCategoryChange(i, it)
+                    firstDouble = it
+
+                },
+                modifier = Modifier.width(60.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        else
+            GoodTextField(
+                value = firstInt,
+                onValueChange = {
+                    atFirstCategoryChange(i, it)
+                },
+                modifier = Modifier.width(60.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
         Spacer(modifier = Modifier.width(12.dp))
         if (isSecondCategory) {
             GoodTextField(
@@ -612,13 +783,14 @@ fun PreviewExerciseHolder() {
             setsNum = 1,
             isSecondCategory = true,
             firstCategoryName = "Kg",
+            sets = listOf(Set(1,1)),
             secondCategoryName = "Reps",
             atFirstCategoryChange = { _, _ ->},
-            setsList = listOf(Set(1,1)),
             atAddSet = {},
             removeSetFromIndex = {},
             reorderable = false,
-            breakTime = 60
+            breakTime = "60",
+            onBreakChange = {}
         )
     }
 }
