@@ -2,6 +2,7 @@ package com.example.power
 
 import android.app.NotificationManager
 import android.content.Context
+import com.example.power.data.repository.InfoRepository
 import com.example.power.data.repository.PlanRepository
 import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.repository.exercise.ExercisesRepository
@@ -15,6 +16,7 @@ interface AppContainer {
     val exercisesRepository: ExercisesRepository
     val workoutsRepository: WorkoutRepository
     val plansRepository: PlanRepository
+    val infoRepository: InfoRepository
     val scope: Context
 }
 
@@ -33,6 +35,9 @@ class AppDataContainer(private val context: Context) : AppContainer {
     }
     override val plansRepository: PlanRepository by lazy {
         PlanRepository(AppDatabase.getDatabase(context).planDao())
+    }
+    override val infoRepository: InfoRepository by lazy {
+        InfoRepository(AppDatabase.getDatabase(context).infoDao())
     }
     override val scope: Context
         get() = context

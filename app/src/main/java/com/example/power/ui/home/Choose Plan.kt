@@ -1,5 +1,6 @@
 package com.example.power.ui.home
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -52,18 +53,26 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun PlanQuickStart() {
+fun PlanQuickStart(
+    onBack: () -> Unit = {}
+) {
     var progress by remember { mutableStateOf(0f) }
     val currentProgress: Float by animateFloatAsState(progress)
     val pagerState = rememberPagerState(pageCount = { 4 })
     val scope = rememberCoroutineScope()
-
+    BackHandler {
+        scope.launch {
+            if (pagerState.currentPage == 0) onBack()
+            else pagerState.animateScrollToPage(pagerState.currentPage -1)
+        }
+    }
     Column {
         ProgressNavBar(
             currentProgress = currentProgress,
             onBack = {
                 scope.launch {
-                    pagerState.animateScrollToPage(pagerState.currentPage -1)
+                    if (pagerState.currentPage == 0) onBack()
+                    else pagerState.animateScrollToPage(pagerState.currentPage -1)
                 }
             }
         )
@@ -350,7 +359,7 @@ fun ItemWithPicture(
 fun PlanQuickStartPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
-    setProgressCount: (Int) -> Unit
+    setProgressCount: (Int) -> Unit,
 ) {
     // Display 10 items
     val scope = rememberCoroutineScope()

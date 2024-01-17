@@ -14,11 +14,15 @@ import kotlinx.coroutines.launch
 class InfoViewModel(private val infoRepository: InfoRepository): ViewModel() {
     var infoUiState by mutableStateOf(Info())
         private set
+    var planSelected by mutableStateOf(false)
+    var choosingPlan by mutableStateOf(false)
     init {
         viewModelScope.launch {
             infoUiState = infoRepository.getInfo()
+            if (infoUiState.currentPlan != null) planSelected = true
         }
     }
+
     fun updateInfo(
         username: String = infoUiState.username,
         currentPlan: Plan? = infoUiState.currentPlan,

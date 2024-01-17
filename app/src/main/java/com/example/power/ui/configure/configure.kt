@@ -18,11 +18,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.power.ui.ExerciseScreens
 import com.example.power.ui.PlanScreens
@@ -42,8 +39,9 @@ fun Configure(
     editWorkout: (String) -> Unit,
     startWorkout: (String) -> Unit,
     navigate: (String) -> Unit,
+    selectedTabIndex: Int,
+    setSelectedTabIndex: (Int) -> Unit
 ) {
-    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabTexts = listOf("Plans", "Workouts", "Exercises")
 //    val pagerState = rememberPagerState() { tabTexts.size }
 //    LaunchedEffect(selectedTabIndex) {
@@ -61,6 +59,7 @@ fun Configure(
         }
     }
     Scaffold (
+        modifier,
         snackbarHost =  { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             when (selectedTabIndex) {
@@ -84,7 +83,7 @@ fun Configure(
                     )
                     Tab(
                         selected = index == selectedTabIndex,
-                        onClick = { selectedTabIndex = index },
+                        onClick = { setSelectedTabIndex(index) },
                         text = {
                             Text(
                                 text = text,

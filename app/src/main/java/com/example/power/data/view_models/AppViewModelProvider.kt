@@ -53,6 +53,9 @@ object AppViewModelProvider {
                 powerApplication().container.workoutsRepository
             )
         }
+        initializer {
+            InfoViewModel(powerApplication().container.infoRepository)
+        }
     }
 }
 

@@ -16,5 +16,5 @@ interface InfoDao {
     suspend fun update(info: Info)
 
     @Query("SELECT * FROM info WHERE id = :id")
-    fun getInfoById(id:String): Info?
+    suspend fun getInfoById(id:String): Info?
 }

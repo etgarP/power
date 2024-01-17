@@ -46,8 +46,10 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -171,6 +173,7 @@ fun AppNavHost(
             }
         ) {
         setSelectedItem(2)
+            var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
             Configure(
                 editPlan = { planName ->
                     navController.navigate("${PlanScreens.EditItem.route}/$planName")
@@ -185,7 +188,9 @@ fun AppNavHost(
                     navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
                     setInWorkout(true)
                 },
-                navigate = navController::navigate
+                navigate = navController::navigate,
+                selectedTabIndex = selectedTabIndex,
+                setSelectedTabIndex = { selectedTabIndex = it }
             )
         }
 
