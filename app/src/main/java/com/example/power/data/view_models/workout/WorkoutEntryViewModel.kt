@@ -3,6 +3,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.room.CardioExercise
 import com.example.power.data.room.Exercise
@@ -12,6 +13,7 @@ import com.example.power.data.room.RepsExercise
 import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.data.room.Workout
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 /**
@@ -49,14 +51,18 @@ class WorkoutEntryViewModel(private val workoutRepository: WorkoutRepository) : 
         }
         return true
     }
-    suspend fun saveWorkout() {
-        if (validateInput()) {
-            workoutRepository.insertWorkout(workoutUiState.workoutDetails.toWorkout())
+    fun saveWorkout() {
+        viewModelScope.launch {
+            if (validateInput()) {
+                workoutRepository.insertWorkout(workoutUiState.workoutDetails.toWorkout())
+            }
         }
     }
-    suspend fun updateWorkout() {
-        if (validateInput()) {
-            workoutRepository.updateWorkout(workoutUiState.workoutDetails.toWorkout())
+    fun updateWorkout() {
+        viewModelScope.launch{
+            if (validateInput()) {
+                workoutRepository.updateWorkout(workoutUiState.workoutDetails.toWorkout())
+            }
         }
     }
 

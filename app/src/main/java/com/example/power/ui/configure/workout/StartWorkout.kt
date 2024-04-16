@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,12 +36,36 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.bodyTypeMap
 import com.example.power.data.view_models.AppViewModelProvider
+import com.example.power.data.view_models.InfoViewModel
 import com.example.power.data.view_models.workout.ExerciseHolderItem
 import com.example.power.data.view_models.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
 import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
 import com.example.power.ui.configure.Plan.workout.EditOrAddWorkout
+import kotlinx.coroutines.launch
+
+@Composable
+fun OnGoingWorkoutFromPlan(
+    modifier: Modifier = Modifier,
+    index: Int?,
+    workoutName: String?,
+    getMore: () -> Unit,
+    getExercise: () -> Exercise?,
+    onBack: () -> Unit,
+    viewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory)
+) {
+    if (index == null) onBack()
+    else
+        OnGoingWorkout(
+            workoutName = workoutName,
+            getMore = getMore,
+            getExercise = getExercise,
+            onBack = onBack
+        ) {
+            viewModel.completeWorkout(index)
+        }
+}
 
 @Composable
 fun OnGoingWorkout(
@@ -48,20 +74,22 @@ fun OnGoingWorkout(
     getMore: () -> Unit,
     getExercise: () -> Exercise?,
     onBack: () -> Unit,
-    viewModel: WorkoutEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: WorkoutEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    addToPlan: () -> Unit = {}
 ) {
-    var shouldStartScreen by remember { mutableStateOf(true) }
-
-        var firstTime by rememberSaveable { mutableStateOf(true) }
-        LaunchedEffect(workoutName) {
-            if (firstTime) {
-                val isWorkoutExist = viewModel.loadWorkoutDetails(workoutName)
-                if (!isWorkoutExist) onBack()
-            }
-            firstTime = false
+    BackHandler {
+        onBack()
+    }
+    var firstTime by rememberSaveable { mutableStateOf(true) }
+    LaunchedEffect(workoutName) {
+        if (firstTime) {
+            val isWorkoutExist = viewModel.loadWorkoutDetails(workoutName)
+            if (!isWorkoutExist) onBack()
         }
-        val addedExercise = getExercise()
-        if (addedExercise != null) viewModel.addExerciseHolder(addedExercise)
+        firstTime = false
+    }
+    val addedExercise = getExercise()
+    if (addedExercise != null) viewModel.addExerciseHolder(addedExercise)
     AnimatedVisibility (
         viewModel.showPreview,
 
@@ -69,10 +97,10 @@ fun OnGoingWorkout(
             IntOffset(-180, 0)
         },
     ) {
-        val workoutName = viewModel.workoutUiState.workoutDetails.name
+        val wName = viewModel.workoutUiState.workoutDetails.name
         val exercises = viewModel.workoutUiState.workoutDetails.exercises
         WorkoutPreviewPage(
-            workoutName = workoutName,
+            workoutName = wName,
             exercises = exercises,
             onStart = { viewModel.showPreview = false },
             onBack = onBack
@@ -82,7 +110,7 @@ fun OnGoingWorkout(
         !viewModel.showPreview,
         enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
             IntOffset(+180, 0)
-        },
+        } + fadeIn(animationSpec = tween(220, delayMillis = 90)),
     ) {
         var openAlertDialog by remember { mutableStateOf(false) }
         when {
@@ -102,6 +130,8 @@ fun OnGoingWorkout(
         BackHandler {
             openAlertDialog = true
         }
+        val corutine = rememberCoroutineScope()
+        val infoViewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory)
         if (!viewModel.showPreview) {
             viewModel.updateUiState(viewModel.workoutUiState.workoutDetails)
             EditOrAddWorkout(
@@ -111,11 +141,18 @@ fun OnGoingWorkout(
                 workoutDetails = viewModel.workoutUiState.workoutDetails,
                 valid = viewModel.workoutUiState.isEntryValid,
                 removeExerciseHolder = viewModel::removeExercise,
-                onDone = viewModel::updateWorkout,
+                onDone = {
+                    corutine.launch {
+                        viewModel.updateWorkout()
+                    }
+                    addToPlan()
+                    if (workoutName != null)
+                        infoViewModel.addFinishedWorkout(workoutName)
+                 },
                 title = viewModel.workoutUiState.workoutDetails.name,
                 getMore = getMore,
                 swapItems = viewModel::reorderList,
-                isActiveWorkout = true
+                isActiveWorkout = true,
             ) {
                 onBack()
             }

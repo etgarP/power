@@ -29,22 +29,19 @@ enum class PlanType {
     CARDIO,
     GYM,
     BODYWEIGHT,
-    DUMBBELLS,
-    MIXED
+    DUMBBELLS
 }
 val planTypeToStringMap = mapOf(
     PlanType.CARDIO to "Cardio Plan",
     PlanType.GYM to "Gym Plan",
     PlanType.BODYWEIGHT to "Body-Weight Plan",
     PlanType.DUMBBELLS to "Dumbbells Plan",
-    PlanType.MIXED to "Mixed Plan",
 )
 val stringToPlanTypeMap = mapOf(
     "Cardio Plan" to PlanType.CARDIO,
     "Gym Plan" to PlanType.GYM,
     "Body-Weight Plan" to PlanType.BODYWEIGHT,
     "Dumbbells Plan" to PlanType.DUMBBELLS,
-    "Mixed Plan" to PlanType.MIXED
 )
 val exerciseTypeMap: Map<ExerciseType, String> = mapOf(
     ExerciseType.REPS to "Reps",
@@ -170,16 +167,19 @@ data class Plan(
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)
     }
+    fun matchesFilter(minPerWeek: Int, maxPerWeek: Int, planType: PlanType) : Boolean {
+        return workouts.size in minPerWeek..maxPerWeek && planType == this.planType
+    }
     fun startWeeks() {
+        val n = workouts.size
         for(i: Int in 1..weeks) {
-            val n = workouts.size
             weeksList = weeksList + Week(
                 totalNumOfWorkouts = n,
             )
         }
     }
 }
-data class HistoryItem(val id: Int, val name: String)
+data class HistoryItem(val name: String, val date: Date)
 
 @Entity(tableName = "info")
 data class Info(
@@ -187,6 +187,7 @@ data class Info(
     var id: Int = 0,
     val username: String = "User",
     val currentPlan: Plan? = null,
-    val workoutHistory: List<HistoryItem> = emptyList(),
-    val planHistory: List<HistoryItem> = emptyList()
+    val workoutHistory: MutableList<HistoryItem> = mutableListOf(),
+    var planHistory: MutableList<HistoryItem> = mutableListOf(),
+    var date: Date = Date()
 )

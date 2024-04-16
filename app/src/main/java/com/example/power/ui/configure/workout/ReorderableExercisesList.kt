@@ -30,7 +30,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +47,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -524,6 +527,7 @@ fun GeneralExerciseComposable(
     var showBreak by remember { mutableStateOf(false) }
     val timer by remember { mutableStateOf(CountdownTimer(breakTime.toInt()))  }
     var time by remember { mutableStateOf(timer.getFormattedTime()) }
+    val isTime = firstCategoryName == "Secs" && !isSecondCategory
     OutlinedCard(
         padding = false,
         modifier = modifier,
@@ -613,7 +617,8 @@ fun GeneralExerciseComposable(
                             secondVal = if (setsWeight != null) setsWeight[i].second
                                 else if (sets != null) sets[i].second
                                 else -1,
-                            isActiveWorkout = isActiveWorkout
+                            isActiveWorkout = isActiveWorkout,
+                            isTime = isTime
                         ) {
                             showBreak = true
                             timer.loadTime(breakTime.toInt())
@@ -621,6 +626,7 @@ fun GeneralExerciseComposable(
                                 onTick = { time = it },
                                 onFinish = {
                                     showBreak = false
+                                    notificationService.cancelAll()
                                     notificationService.showBasicNotification()
                                 })
                         }
@@ -693,7 +699,8 @@ fun SetsRow(
     firstValInt: Int = -1,
     secondVal: Int,
     isActiveWorkout: Boolean = false,
-    onStart: () -> Unit
+    isTime: Boolean = false,
+    onStart: () -> Unit,
 ) {
     var firstDouble by remember {
         mutableStateOf(
@@ -709,7 +716,7 @@ fun SetsRow(
     }
 
     val second = if (secondVal == 0) "" else "$secondVal"
-    var checked by remember { mutableStateOf(false) }
+    var checked by rememberSaveable { mutableStateOf(false) }
     val color by animateColorAsState(
         targetValue =
             if (checked) MaterialTheme.colorScheme.primaryContainer
@@ -758,19 +765,72 @@ fun SetsRow(
             Spacer(modifier = Modifier.width(12.dp))
         }
         if (isActiveWorkout) {
-            androidx.compose.material3.Checkbox(
-                checked = checked,
-                onCheckedChange = {
-                    checked = it
-                    if (it) onStart()
+            val notificationService = PowerNotificationService(LocalContext.current)
+            if (!isTime)
+                androidx.compose.material3.Checkbox(
+                    checked = checked,
+                    onCheckedChange = {
+                        checked = it
+                        if (it) onStart()
+                    }
+                )
+            else
+                timerForSet(time = firstValInt) {
+                    onStart()
+                    notificationService.cancelAll()
+                    notificationService.showBasicNotification(
+                        title = "Set Over",
+                        content = "Break starts now"
+                    )
                 }
-            )
             Spacer(modifier = Modifier.width(12.dp))
+
         }
     }
 }
 
 @Preview(showBackground = true)
+@Composable
+fun timerForSet(time: Int = 5, onFinish: () -> Unit = {}) {
+    var finished by remember { mutableStateOf(false) }
+    val timer by remember { mutableStateOf(CountdownTimer(time))  }
+    var currentTime by remember { mutableStateOf(timer.getFormattedTime()) }
+    var running by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = {
+            if (!running) {
+                if (finished) finished = false
+                timer.start(
+                    onTick = {
+                        currentTime = it
+                             },
+                    onFinish = {
+                        onFinish()
+                        timer.reset()
+                        running = !running
+                        finished = true
+                    }
+                )
+            }
+            running = !running
+        }) {
+            Icon(
+                imageVector =
+                if (finished) Icons.Filled.RestartAlt
+                else if (running) Icons.Filled.Stop
+                else Icons.Filled.PlayArrow,
+                contentDescription = "start set timer"
+            )
+        }
+        if (running)
+            Text(
+                modifier = Modifier.padding(end = 7.dp),
+                text = currentTime
+            )
+    }
+
+}
+
 @Composable
 fun PreviewExerciseHolder() {
     Column {

@@ -73,6 +73,7 @@ import com.example.power.ui.configure.Plan.workout.AddWorkout
 import com.example.power.ui.configure.Plan.workout.ChooseExercise
 import com.example.power.ui.configure.Plan.workout.EditWorkout
 import com.example.power.ui.configure.workout.OnGoingWorkout
+import com.example.power.ui.configure.workout.OnGoingWorkoutFromPlan
 import com.example.power.ui.home.Home
 import com.example.power.ui.theme.PowerTheme
 import com.example.power.ui.workout.AddPlan
@@ -81,13 +82,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf(0) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    var inWorkout by remember { mutableStateOf(false) }
+    var inWorkout by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
@@ -126,6 +128,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AppNavHost(
     paddingValues: PaddingValues,
@@ -142,7 +145,13 @@ fun AppNavHost(
          */
         composable(Screens.Home.route) {
             setSelectedItem(0)
-            Home()
+            Home (startWorkoutNoPlan = { workoutName ->
+                    navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
+                    setInWorkout(true)
+            }) { workoutName: String, index: String ->
+                navController.navigate("${WorkoutScreens.StartPlanItem.route}/$workoutName/$index")
+                setInWorkout(true)
+            }
         }
         /**
          * configure screen
@@ -172,7 +181,7 @@ fun AppNavHost(
                 }
             }
         ) {
-        setSelectedItem(2)
+            setSelectedItem(2)
             var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
             Configure(
                 editPlan = { planName ->
@@ -201,7 +210,10 @@ fun AppNavHost(
             Screens.History.route,
         ) { navBackResult ->
             setSelectedItem(1)
-            History()
+            History() { workoutName ->
+                navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
+                setInWorkout(true)
+            }
         }
 
         /**
@@ -366,6 +378,40 @@ fun AppNavHost(
             enterTransition = {
                 when (initialState.destination.route) {
                     Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
+//                    WorkoutScreens.ChooseExercise.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
+                    else -> null
+                }
+            },
+            exitTransition = {
+                when (targetState.destination.route) {
+                    Screens.Configure.route -> scaleOutOfContainer(direction = Direction.OUTWARDS)
+//                    WorkoutScreens.ChooseExercise.route -> scaleOutOfContainer(direction = Direction.INWARDS)
+                    else -> null
+                }
+            }
+        ) { navBackResult ->
+            val workoutName =
+                navBackResult.arguments?.getString(WorkoutScreens.StartItem.argument)
+            OnGoingWorkout(
+                workoutName = workoutName,
+                onBack = {
+                    navController.popBackStack()
+                    setInWorkout(false)
+                 },
+                getMore = { navController.navigate(WorkoutScreens.ChooseExercise.route) },
+                getExercise = {
+                    val exercise = navBackResult.savedStateHandle.get<Exercise>("exercise")
+                    navBackResult.savedStateHandle["exercise"] = null
+                    exercise
+                }
+            )
+        }
+        composable(
+            route = WorkoutScreens.StartPlanItem.routeWithArgs,
+            arguments = WorkoutScreens.StartPlanItem.arguments,
+            enterTransition = {
+                when (initialState.destination.route) {
+                    Screens.Configure.route -> scaleIntoContainer(direction = Direction.INWARDS)
                     WorkoutScreens.ChooseExercise.route -> scaleIntoContainer(direction = Direction.OUTWARDS)
                     else -> null
                 }
@@ -379,13 +425,15 @@ fun AppNavHost(
             }
         ) { navBackResult ->
             val workoutName =
-                navBackResult.arguments?.getString(WorkoutScreens.StartItem.argument)
-            OnGoingWorkout(
+                navBackResult.arguments?.getString(WorkoutScreens.StartPlanItem.argument1)
+            val index = navBackResult.arguments?.getInt(WorkoutScreens.StartPlanItem.argument2)
+            OnGoingWorkoutFromPlan(
                 workoutName = workoutName,
+                index = index,
                 onBack = {
                     navController.popBackStack()
                     setInWorkout(false)
-                 },
+                },
                 getMore = { navController.navigate(WorkoutScreens.ChooseExercise.route) },
                 getExercise = {
                     val exercise = navBackResult.savedStateHandle.get<Exercise>("exercise")

@@ -8,6 +8,7 @@ import com.example.power.data.repository.WorkoutRepository
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Plan
 import com.example.power.data.room.Workout
+import com.example.power.data.room.planTypeToStringMap
 import com.example.power.data.room.stringToPlanTypeMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -38,6 +39,7 @@ class PlanEntryViewModel(
     private fun validateInput(uiState: PlanDetails = planUiState.planDetails): Boolean {
         return with(uiState) {
             name.isNotBlank() && name.length < 50 && workouts.isNotEmpty()
+                    && weeks <= 100 && weeks > 0
         }
     }
     suspend fun savePlan() {
@@ -131,7 +133,8 @@ data class PlanDetails(
     var id: Int = 0,
     var name: String = "",
     var workouts: List<WorkoutItem> = emptyList(),
-    var type: String = "Mixed Plan"
+    var weeks: Int = 0,
+    var type: String = "Gym Plan"
 )
 
 /**
@@ -145,7 +148,7 @@ fun PlanDetails.toWorkout(): Plan? {
             id = id,
             name = name,
             workouts = toWorkoutList(workouts),
-            weeks = workouts.size,
+            weeks = weeks,
             planType = it
         )
     }
@@ -168,5 +171,7 @@ fun Plan.toPlanUiState(isEntryValid: Boolean = false): PlanUiState = PlanUiState
 fun Plan.toPlanDetails(): PlanDetails = PlanDetails(
     id = id,
     name = name,
+    weeks = weeks,
     workouts = toWorkoutItemList(workouts),
+    type = planTypeToStringMap[planType] ?: "Gym Plan"
 )

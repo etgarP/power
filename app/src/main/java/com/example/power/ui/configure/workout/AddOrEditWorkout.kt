@@ -36,7 +36,6 @@ import com.example.power.data.view_models.workout.WorkoutDetails
 import com.example.power.data.view_models.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
 import kotlinx.coroutines.launch
-import kotlin.reflect.KSuspendFunction0
 
 @Composable
 fun EditWorkout(
@@ -107,7 +106,7 @@ fun EditOrAddWorkout(
     workoutDetails: WorkoutDetails,
     onValueChange: (WorkoutDetails) -> Unit = {},
     valid: Boolean,
-    onDone: KSuspendFunction0<Unit>,
+    onDone: () -> Unit,
     getMore: () -> Unit,
     removeExerciseHolder: (ExerciseHolderItem) -> Unit,
     swapItems: (Int, Int) -> Unit,

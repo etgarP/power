@@ -4,25 +4,32 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.example.power.R
-import kotlin.random.Random
+
 
 class PowerNotificationService(
     private val context: Context
 ){
     private val notificationManager=context.getSystemService(NotificationManager::class.java)
-    fun showBasicNotification(){
+    private val NOTIFICATION_ID = 1
+    fun showBasicNotification(
+        title : String = "Workout Break Over",
+        content : String = "Time to continue your workout."
+    ){
         val notification= NotificationCompat.Builder(context,"power_notification")
-            .setContentTitle("Workout Break Over")
-            .setContentText("Time to continue your workout.")
+            .setContentTitle(title)
+            .setContentText(content)
             .setSmallIcon(R.drawable.power_icon)
-            .setPriority(NotificationManager.IMPORTANCE_HIGH)
+            .setPriority(NotificationManager.IMPORTANCE_MAX)
             .setAutoCancel(true)
             .build()
 
         notificationManager.notify(
-            Random.nextInt(),
+            NOTIFICATION_ID,
             notification
         )
+    }
+    fun cancelAll() {
+        notificationManager!!.cancel(NOTIFICATION_ID)
     }
 
 //    fun showExpandableNotification(){

@@ -56,7 +56,7 @@ fun PlansPage(
 ) {
     val planViewModel: PlanViewModel = viewModel(factory = AppViewModelProvider.Factory)
     val searchText by planViewModel.searchText.collectAsState()
-    val plans by planViewModel.workouts.collectAsState()
+    val plans by planViewModel.plans.collectAsState()
     Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier.heightIn(10.dp))
         SearchItem(searchVal = searchText, setVal = planViewModel::onSearchTextChange)
@@ -129,11 +129,11 @@ fun PlanHolder(
         onItemClick = onEdit,
         moreText = it,
         isMoreText = true
-    ) {
-        IconButton(onClick = { showBottomSheet = true }) {
-            Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "show more options")
+        ) {
+            IconButton(onClick = { showBottomSheet = true }) {
+                Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "show more options")
+            }
         }
-    }
     }
 }
 

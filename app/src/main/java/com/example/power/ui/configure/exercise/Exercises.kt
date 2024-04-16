@@ -39,12 +39,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.power.R
 import com.example.power.data.room.bodyTypeMap
 import com.example.power.data.room.exerciseTypeMap
 import com.example.power.data.view_models.AppViewModelProvider
@@ -138,19 +141,34 @@ fun ExercisesPreview() {
     Exercises(onItemClick = {}, showSnack = {})
 }
 
+fun getRandomNumber(input: String): Int {
+    val hashCode = input.hashCode()
+    val randomNumber = (hashCode % 6)
+    return if (randomNumber < 0) randomNumber + 6 else randomNumber // Ensure positive result
+}
+
 @Composable
 fun CircleWithLetter(
     modifier: Modifier = Modifier,
     letter: String,
 ) {
+    val colors: List<Color> = listOf(
+        colorResource(R.color.light_color_1),
+        colorResource(R.color.light_color_2),
+        colorResource(R.color.light_color_3),
+        colorResource(R.color.light_color_4),
+        colorResource(R.color.light_color_5),
+        colorResource(R.color.light_color_6),
+    )
+    val color = colors[getRandomNumber(letter)]
     Box(
         modifier = modifier
             .size(50.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(color)
     ) {
         Text(text = letter, Modifier.align(Alignment.Center),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.surface,
             fontSize = 25.sp
         )
     }
@@ -340,7 +358,7 @@ fun ButtomSheetItem(
 
 @Preview(showBackground = true)
 @Composable
-fun ButtomSheetItemPreview() {
+fun BottomSheetItemPreview() {
     ButtomSheetItem(
         imageVector = Icons.Filled.Edit,
         text = "Edit name",

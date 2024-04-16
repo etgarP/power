@@ -1,5 +1,10 @@
 package com.example.power.ui.configure.Plan.workout
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -10,6 +15,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Expand
@@ -18,7 +25,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,9 +46,10 @@ import com.example.power.ui.configure.performHapticFeedback
 import com.example.power.ui.configure.workout.ExerciseHolderComposable
 import com.example.power.ui.rememberDragDropListState
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun onlyExercises(
     modifier: Modifier = Modifier,
@@ -57,12 +67,10 @@ fun onlyExercises(
     val dragDropListState = rememberDragDropListState(onMove = swapItems)
     var selectedItem: ExerciseHolderItem? by remember { mutableStateOf(null) }
     var list = workoutDetails.exercises
-    if (reorderable)
+    if (reorderable) {
         topComposable()
-    LazyColumn (
-        modifier =
-        if (reorderable)
-            modifier
+        LazyColumn (
+            modifier = modifier
                 .pointerInput(Unit) {
                     detectDragGesturesAfterLongPress(
                         onDrag = { change, offset ->
@@ -90,59 +98,101 @@ fun onlyExercises(
                             dragDropListState.onDragInterrupted()
                         }
                     )
-                }
-        else modifier,
-        state = dragDropListState.lazyListState
-    ) {
-        if (!reorderable) {
-            item {
-                topComposable()
+                },
+            state = dragDropListState.lazyListState
+        ) {
+
+            items(list, key = { it.uniqueKey }) { item ->
+                var isDragging = dragDropListState.currentIndexOfDraggedItem == item.exerciseHolder.position
+
+                ExerciseHolderComposable(
+                    modifier =
+                    if (reorderable)
+                        Modifier
+                            .composed {
+                                val offsetOrNull = dragDropListState.elementDisplacement.takeIf {
+                                    item.exerciseHolder.position == dragDropListState.currentIndexOfDraggedItem
+                                }
+                                Modifier.graphicsLayer {
+                                    translationY = offsetOrNull ?: 0f
+                                }
+                            }
+                    else Modifier,
+                    onDismiss = {
+                        removeExerciseHolder(item)
+                        list = list.toMutableList() - item
+                        onValueChange(workoutDetails.copy(exercises = list))
+                    },
+                    exerciseHolder = item.exerciseHolder,
+                    isDraggingThis = isDragging,
+                    setExerciseHolder = {
+                        item.exerciseHolder = it
+                        onValueChange(workoutDetails.copy(exercises = list))
+                    },
+                    reorderable = reorderable,
+                    isActiveWorkout = isActiveWorkout,
+                    breakSet = item.exerciseHolder.breakTime,
+                    whenBreakChange = { numString ->
+                        try {
+                            val change = numString.toInt()
+                            val num = if (change >= 3600) 3599 else change
+                            item.exerciseHolder.breakTime = num
+                            onValueChange(workoutDetails.copy(exercises = list))
+                        } catch (e: Exception) {
+//                        onValueChange(workoutDetails.copy())
+                        }
+                    }
+                )
             }
         }
-
-        items(list, key = { it.uniqueKey }) { item ->
-            var isDragging = dragDropListState.currentIndexOfDraggedItem == item.exerciseHolder.position
-
-            ExerciseHolderComposable(
-                modifier =
-                if (reorderable)
-                    Modifier
-                        .composed {
-                            val offsetOrNull = dragDropListState.elementDisplacement.takeIf {
-                                item.exerciseHolder.position == dragDropListState.currentIndexOfDraggedItem
-                            }
-                            Modifier.graphicsLayer {
-                                translationY = offsetOrNull ?: 0f
+    } else
+        Column (modifier = Modifier.verticalScroll(rememberScrollState())){
+            topComposable()
+            val gradualList = remember { mutableStateListOf<ExerciseHolderItem>() }
+            LaunchedEffect(Unit) {
+                for (item in list) {
+                    delay(100) // Wait for 1000 milliseconds (1 second)
+                    gradualList += item
+                }
+            }
+            for (item in gradualList) {
+                AnimatedVisibility(
+                    visible = true, // Initially set to true to trigger the animation
+                    enter = fadeIn(
+                        // Define the fade-in animation parameters
+                        animationSpec = tween(durationMillis = 500) // Adjust duration as needed
+                    )
+                ) {
+                    ExerciseHolderComposable(
+                        onDismiss = {
+                            removeExerciseHolder(item)
+                            list = list.toMutableList() - item
+                            onValueChange(workoutDetails.copy(exercises = list))
+                        },
+                        exerciseHolder = item.exerciseHolder,
+                        isDraggingThis = false,
+                        setExerciseHolder = {
+                            item.exerciseHolder = it
+                            onValueChange(workoutDetails.copy(exercises = list))
+                        },
+                        reorderable = reorderable,
+                        isActiveWorkout = isActiveWorkout,
+                        breakSet = item.exerciseHolder.breakTime,
+                        whenBreakChange = { numString ->
+                            try {
+                                val change = numString.toInt()
+                                val num = if (change >= 3600) 3599 else change
+                                item.exerciseHolder.breakTime = num
+                                onValueChange(workoutDetails.copy(exercises = list))
+                            } catch (e: Exception) {
+//                        onValueChange(workoutDetails.copy())
                             }
                         }
-                else Modifier,
-                onDismiss = {
-                    removeExerciseHolder(item)
-                    list = list.toMutableList() - item
-                    onValueChange(workoutDetails.copy(exercises = list))
-                },
-                exerciseHolder = item.exerciseHolder,
-                isDraggingThis = isDragging,
-                setExerciseHolder = {
-                    item.exerciseHolder = it
-                    onValueChange(workoutDetails.copy(exercises = list))
-                },
-                reorderable = reorderable,
-                isActiveWorkout = isActiveWorkout,
-                breakSet = item.exerciseHolder.breakTime,
-                whenBreakChange = { numString ->
-                    try {
-                        val change = numString.toInt()
-                        val num = if (change >= 3600) 3599 else change
-                        item.exerciseHolder.breakTime = num
-                        onValueChange(workoutDetails.copy(exercises = list))
-                    } catch (e: Exception) {
-//                        onValueChange(workoutDetails.copy())
-                    }
+                    )
                 }
-            )
+
+            }
         }
-    }
 }
 
 @Composable

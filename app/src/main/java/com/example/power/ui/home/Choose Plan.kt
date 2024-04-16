@@ -3,6 +3,8 @@ package com.example.power.ui.home
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -15,18 +17,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -34,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,18 +56,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
+import com.example.power.data.room.Plan
+import com.example.power.data.room.PlanType
+import com.example.power.data.room.Workout
+import com.example.power.data.room.planTypeToStringMap
+import com.example.power.data.view_models.AppViewModelProvider
+import com.example.power.data.view_models.plan.FilterParams
+import com.example.power.data.view_models.plan.PlanViewModel
+import com.example.power.ui.configure.TopBigTitleCard
+import com.example.power.ui.workout.WorkoutCard
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun PlanQuickStart(
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onSelect: (Plan) -> Unit = {}
 ) {
+    val viewModel: PlanViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    val plans by viewModel.plans.collectAsState()
     var progress by remember { mutableStateOf(0f) }
-    val currentProgress: Float by animateFloatAsState(progress)
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    val currentProgress: Float by animateFloatAsState(progress, label = "")
+    val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
     BackHandler {
         scope.launch {
@@ -78,13 +100,17 @@ fun PlanQuickStart(
         )
         PlanQuickStartPager(
             pagerState = pagerState,
+            plans = plans,
+            onSelect = onSelect,
+            filterState = viewModel.filterParamsState,
+            onFilterChange = viewModel::updateFilterParams,
             setProgressCount = { page ->
                 loadProgress(
                     updateProgress = {
                         progress = it
                     },
                     screenPosition = page,
-                    totalPages = 4
+                    totalPages = 3
                 )
             }
         )
@@ -109,9 +135,10 @@ fun generalPageEnvironment(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                modifier = Modifier.padding(10.dp),
+                modifier = Modifier.padding(30.dp),
                 style = MaterialTheme.typography.titleLarge,
-                text = title
+                text = title,
+                textAlign = TextAlign.Center
             )
         }
         Column {
@@ -124,7 +151,7 @@ fun generalPageEnvironment(
             Button(
                 modifier = Modifier.padding(20.dp),
                 onClick = { onContinue() },
-                enabled = valid
+                enabled = valid,
             ) {
                 Text(text = buttonText)
             }
@@ -134,6 +161,8 @@ fun generalPageEnvironment(
 
 @Composable
 fun WorkoutAmount(
+    filterState: FilterParams,
+    onFilterChange: (FilterParams) -> Unit,
     modifier: Modifier = Modifier,
     setValid: (Boolean) -> Unit
 ) {
@@ -146,41 +175,41 @@ fun WorkoutAmount(
         Row {
             smallClickableItem(
                 modifier = Modifier.weight(1f),
-                text = "1",
-                onClick = { selected = 0 },
+                text = "1 - 2",
+                onClick = {
+                    selected = 0
+                    onFilterChange(filterState.copy(minExercises = 1, maxExercises = 2))
+                },
                 selected = selected == 0
             )
             smallClickableItem(
                 modifier = Modifier.weight(1f),
-                text = "2",
-                onClick = { selected = 1 },
+                text = "3 - 4",
+                onClick = {
+                    selected = 1
+                    onFilterChange(filterState.copy(minExercises = 3, maxExercises = 4))
+                },
                 selected = selected == 1
-            )
-            smallClickableItem(
-                modifier = Modifier.weight(1f),
-                text = "3",
-                onClick = { selected = 2 },
-                selected = selected == 2
             )
         }
         Row {
             smallClickableItem(
                 modifier = Modifier.weight(1f),
-                text = "4",
-                onClick = { selected = 3 },
+                text = "5 - 6",
+                onClick = {
+                    selected = 2
+                    onFilterChange(filterState.copy(minExercises = 5, maxExercises = 6))
+                },
+                selected = selected == 2
+            )
+            smallClickableItem(
+                modifier = Modifier.weight(1f),
+                text = "7+",
+                onClick = {
+                    selected = 3
+                    onFilterChange(filterState.copy(minExercises = 7, maxExercises = 100))
+                },
                 selected = selected == 3
-            )
-            smallClickableItem(
-                modifier = Modifier.weight(1f),
-                text = "5",
-                onClick = { selected = 4 },
-                selected = selected == 4
-            )
-            smallClickableItem(
-                modifier = Modifier.weight(1f),
-                text = "6+",
-                onClick = { selected = 5 },
-                selected = selected == 5
             )
         }
 
@@ -188,6 +217,8 @@ fun WorkoutAmount(
 }
 @Composable
 fun PageLevel(
+    filterState: FilterParams,
+    onFilterChange: (FilterParams) -> Unit,
     modifier: Modifier = Modifier,
     setValid: (Boolean) -> Unit
 ) {
@@ -223,6 +254,8 @@ fun PageLevel(
 
 @Composable
 fun PageWorkoutEnvironment(
+    filterState: FilterParams,
+    onFilterChange: (FilterParams) -> Unit,
     modifier: Modifier = Modifier,
     setValid: (Boolean) -> Unit
 ) {
@@ -235,18 +268,27 @@ fun PageWorkoutEnvironment(
         ItemWithPicture(
             text = "Gym",
             imageId = R.drawable.gym,
-            onClick = { selected = 0 },
+            onClick = {
+                selected = 0
+                onFilterChange(filterState.copy(planType = PlanType.GYM))
+            },
             selected = selected == 0
         )
         ItemWithPicture(
             text = "Home (No Equipment)",
             imageId = R.drawable.home_workout,
-            onClick = { selected = 1 },
+            onClick = {
+                selected = 1
+                onFilterChange(filterState.copy(planType = PlanType.BODYWEIGHT))
+            },
             selected = selected == 1
         )
         ItemWithPicture(
             text = "Home (Dumbbells)",
-            onClick = { selected = 2 },
+            onClick = {
+                selected = 2
+                onFilterChange(filterState.copy(planType = PlanType.DUMBBELLS))
+            },
             selected = selected == 2,
             imageId = R.drawable.dumbbell
         )
@@ -266,7 +308,7 @@ fun smallClickableItem(
     )
     Row(modifier, horizontalArrangement = Arrangement.Center) {
         Button(
-            modifier = Modifier.width(60.dp),
+            modifier = Modifier.width(100.dp),
             colors = ButtonDefaults.buttonColors(containerColor = color),
             contentPadding = PaddingValues(0.dp),
             onClick = { onClick() },
@@ -350,6 +392,146 @@ fun ItemWithPicture(
     }
 }
 
+
+@Composable
+fun PlanHolderForChoose(
+    modifier: Modifier = Modifier,
+    plan: Plan,
+    planName: String,
+    numOfWorkouts: Int,
+    typeOfPlan: PlanType,
+    workouts: List<Workout>,
+    numOfWeeks: Int,
+    onSelect: (Plan) -> Unit,
+) {
+    var expanded by mutableStateOf(false)
+    planTypeToStringMap[typeOfPlan]?.let {
+        TopBigTitleCard(
+            modifier,
+            title = planName,
+            isDragging = false,
+            onClick = { onSelect(plan) }
+        ) {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Spacer(Modifier.padding(10.dp))
+                Text(
+                    modifier = Modifier.padding(horizontal = 15.dp),
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(Modifier.padding(10.dp))
+                HorizontalDivider()
+                Spacer(Modifier.padding(10.dp))
+                Text(
+                    modifier = Modifier.padding(horizontal = 15.dp),
+                    text = "$numOfWeeks Weeks",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(Modifier.padding(10.dp))
+                HorizontalDivider()
+                Spacer(Modifier.padding(4.dp))
+                Row (
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 15.dp)
+                            .weight(1f),
+                        text = if (numOfWorkouts > 1) "$numOfWorkouts Workouts Per Week"
+                            else "$numOfWorkouts Workout Per Week",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    IconButton(onClick = { expanded = !expanded }) {
+                        Icon(
+                            imageVector = if (!expanded) Icons.Filled.ExpandMore
+                                else Icons.Filled.ExpandLess,
+                            contentDescription = "see more"
+                        )
+                    }
+                }
+                Spacer(Modifier.padding(4.dp))
+                Column(modifier = Modifier.animateContentSize()) {
+                    if (expanded) {
+                        for(workout in workouts)
+                            WorkoutCard(workout = workout, isDragging = false)
+                    }
+                }
+                HorizontalDivider()
+            }
+        }
+    }
+}
+
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun chooseFilteredPlan(
+    modifier: Modifier = Modifier,
+    filterState: FilterParams = FilterParams(),
+    plans: List<Plan>,
+    onSelect: (Plan) -> Unit,
+    filterPlans: Boolean = true
+) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "Pick A Plan",
+            style = MaterialTheme.typography.titleLarge
+        )
+        val filteredList = if (filterPlans) plans.filter { plan ->
+            plan.matchesFilter(
+                minPerWeek = filterState.minExercises,
+                maxPerWeek = filterState.maxExercises,
+                planType = filterState.planType
+            )
+        } else plans
+        val pagerState = rememberPagerState(pageCount = { filteredList.size })
+        if (filteredList.isNotEmpty())
+            HorizontalPager(
+                modifier = modifier.fillMaxSize(),
+                state = pagerState,
+                contentPadding = PaddingValues(
+                    horizontal = 32.dp
+                ),
+            ) { i ->
+                val padding by animateDpAsState(
+                    if (pagerState.currentPage == i) 0.dp
+                    else 10.dp, label = "resize plan select when unfocused"
+                )
+                PlanHolderForChoose(
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .padding(vertical = padding),
+                    plan = filteredList[i],
+                    onSelect = onSelect,
+                    planName = filteredList[i].name,
+                    numOfWorkouts = filteredList[i].workouts.size,
+                    typeOfPlan = filteredList[i].planType,
+                    workouts = filteredList[i].workouts,
+                    numOfWeeks = filteredList[i].weeks
+                )
+            }
+        else {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "There are no matching plans",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        Spacer(modifier.heightIn(10.dp))
+    }
+}
+
+
+
 // 1. what type of environment do you have access to,
 // 2. what level are you
 // 3. how many days a week do you plan to workout
@@ -360,6 +542,10 @@ fun PlanQuickStartPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
     setProgressCount: (Int) -> Unit,
+    filterState: FilterParams,
+    onFilterChange: (FilterParams) -> Unit,
+    plans: List<Plan>,
+    onSelect: (Plan) -> Unit,
 ) {
     // Display 10 items
     val scope = rememberCoroutineScope()
@@ -379,25 +565,41 @@ fun PlanQuickStartPager(
                     pagerState.animateScrollToPage(page = page + 1)
                 }
             },
-            title = if (page == 2) "Where do you plan to workout?"
-            else if (page == 1) "What is your experience level?"
-            else if (page == 0) "how many workout do you plan to do?"
+            title = if (page == 0) "Where do you plan to workout?"
+//            else if (page == 1) "What is your experience level?"
+            else if (page == 1) "how many workout do you plan to do?"
             else "",
             valid = valid
         ) {
-            if (page == 2)
-                PageWorkoutEnvironment() {
+            if (page == 0)
+                PageWorkoutEnvironment(
+                    filterState = filterState,
+                    onFilterChange = onFilterChange,
+                ) {
                     valid = it
                 }
+//            else if (page == 1) {
+//                PageLevel(
+//                    filterState = filterState,
+//                    onFilterChange = onFilterChange,
+//                ) {
+//                    valid = it
+//                }
+//            }
             else if (page == 1) {
-                PageLevel() {
+                WorkoutAmount(
+                    filterState = filterState,
+                    onFilterChange = onFilterChange,
+                ) {
                     valid = it
                 }
             }
-            else if (page == 0) {
-                WorkoutAmount() {
-                    valid = it
-                }
+            else if (page == 2) {
+                chooseFilteredPlan(
+                    plans = plans,
+                    filterState = filterState,
+                    onSelect = onSelect
+                )
             }
         }
     }

@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,7 @@ import com.example.power.ui.configure.Plan.exercise.Exercises
 import com.example.power.ui.configure.Plan.workout.Workouts
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Configure(
     modifier: Modifier = Modifier,
@@ -43,14 +42,6 @@ fun Configure(
     setSelectedTabIndex: (Int) -> Unit
 ) {
     val tabTexts = listOf("Plans", "Workouts", "Exercises")
-//    val pagerState = rememberPagerState() { tabTexts.size }
-//    LaunchedEffect(selectedTabIndex) {
-//        pagerState.animateScrollToPage(selectedTabIndex)
-//    }
-//    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-//        if(!pagerState.isScrollInProgress)
-//            selectedTabIndex = pagerState.currentPage
-//    }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val activateSnackBar: (String) -> Unit = { string ->
@@ -114,24 +105,6 @@ fun Configure(
             ) {
                 Exercises(onItemClick = editExercise, showSnack = activateSnackBar)
             }
-
-//            HorizontalPager(
-//                state = pagerState,
-//                modifier = modifier.weight(1f)
-//            ) { index ->
-//                Box(
-//                    modifier = Modifier.fillMaxSize(),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    if(index == 0) {
-//                        Plans(onEdit = editPlan)
-//                    } else if(index == 1) {
-//                        Workouts(onEdit = editWorkout, onItemClick = startWorkout, showSnack = activateSnackBar)
-//                    } else if (index == 2) {
-//                        Exercises(onItemClick = editExercise, showSnack = activateSnackBar)
-//                    }
-//                }
-//            }
         }
     }
 

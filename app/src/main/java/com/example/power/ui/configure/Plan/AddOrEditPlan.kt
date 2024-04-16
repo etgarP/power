@@ -5,16 +5,15 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +36,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
@@ -46,17 +46,18 @@ import com.example.power.data.view_models.plan.PlanDetails
 import com.example.power.data.view_models.plan.PlanEntryViewModel
 import com.example.power.data.view_models.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
+import com.example.power.ui.configure.BottomTitleCard
 import com.example.power.ui.configure.Plan.exercise.DropMenu
 import com.example.power.ui.configure.Plan.workout.RightHandNavButton
-import com.example.power.ui.configure.workout.SwipableItem
 import com.example.power.ui.configure.Section
-import com.example.power.ui.configure.TitleCard
 import com.example.power.ui.configure.performHapticFeedback
+import com.example.power.ui.configure.workout.SwipableItem
 import com.example.power.ui.rememberDragDropListState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun EditPlan(
     modifier: Modifier = Modifier,
@@ -95,6 +96,7 @@ fun EditPlan(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AddPlan(
     modifier: Modifier = Modifier,
@@ -122,6 +124,7 @@ fun AddPlan(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditOrAddPlan(
@@ -179,6 +182,7 @@ fun EditOrAddPlan(
         }
     }
 }
+@RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanInputForm(
@@ -188,8 +192,8 @@ fun PlanInputForm(
     removeWorkout: (WorkoutItem) -> Unit,
     swapItems: (Int, Int) -> Unit,
 ) {
-    val typesOfPlan = listOf<String>("Mixed Plan","Gym Plan",
-        "Body-Weight Plan", "Dumbbells Plan", "Cardio Plan")
+    val typesOfPlan = listOf<String>("Gym Plan",
+        "Body-Weight Plan", "Dumbbells Plan")
     ReorderableWorkoutlist(
         planDetails = planDetails,
         onValueChange = onValueChange,
@@ -215,6 +219,38 @@ fun PlanInputForm(
                         modifier = Modifier.padding(horizontal = 10.dp)
                     )
                 }
+                Spacer(modifier = Modifier.padding(5.dp))
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    value = when (planDetails.weeks) {
+                        0 -> ""
+                        else -> planDetails.weeks.toString()
+                     },
+                    onValueChange = {
+                        var weeks = 0
+                        try {
+                            weeks = it.toInt()
+                        } catch (_: Exception) {
+                            weeks = 0
+                        }
+                        onValueChange(
+                            planDetails.copy(weeks = weeks))
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    label = { Text(text = "Number of weeks") }
+                )
+                Spacer(modifier = Modifier.padding(5.dp))
+                if (planDetails.weeks > 100 || planDetails.weeks < 1)
+                    Text(
+                        text = "0 < weeks < 101",
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+
                 DropMenu(
                     modifier = Modifier
                         .padding(horizontal = 10.dp)
@@ -320,6 +356,7 @@ fun WorkoutsHolder(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun ReorderableWorkoutlist(
     planDetails: PlanDetails,
@@ -347,7 +384,7 @@ fun WorkoutCard(
     workout: Workout,
     isDragging: Boolean,
 ) {
-    TitleCard(
+    BottomTitleCard(
         title = workout.name,
         isDragging = isDragging
     ) {
