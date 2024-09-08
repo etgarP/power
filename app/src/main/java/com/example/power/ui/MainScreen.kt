@@ -16,6 +16,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,11 +52,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -64,6 +70,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Workout
+import com.example.power.data.view_models.AppViewModelProvider
+import com.example.power.data.view_models.LoadInitialDataViewModel
 import com.example.power.ui.History.History
 import com.example.power.ui.configure.Configure
 import com.example.power.ui.configure.Plan.ChoosePlan
@@ -644,6 +652,22 @@ fun NavBar(
     }
 }
 
+@Composable
+fun loadAnimation(
+    modifier: Modifier = Modifier,
+    circleSize: Dp = 25.dp,
+    circleColor: Color = MaterialTheme.colorScheme.primary,
+    spaceBetween: Dp = 10.dp,
+    travelDistance: Dp = 20.dp
+) {
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Initial loading...")
+    }
+}
+
 @OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -656,6 +680,7 @@ fun MyApp(modifier: Modifier = Modifier) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
+    val loadInitialDataViewModel: LoadInitialDataViewModel = viewModel(factory = AppViewModelProvider.Factory)
     PowerTheme {
         Surface(modifier) {
             MainScreen()

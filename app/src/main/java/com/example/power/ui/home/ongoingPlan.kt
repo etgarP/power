@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,8 +43,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Plan
 import com.example.power.data.room.Week
@@ -94,45 +100,23 @@ fun onGoingPlan(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background),
     ) {
+        Spacer(modifier = Modifier.padding(28.dp))
         var direction = true
         var start = 0
         var lastWeek: Week = Week(1,1)
         for ((index, week) in plan.weeksList.withIndex()) {
             Column (
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .onGloballyPositioned { coordinates ->
                         if (index == weeksPassed(date))
-                            scrollToPosition = coordinates.positionInRoot().y -220
-                },
+                            scrollToPosition = coordinates.positionInRoot().y - 250
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 val weekNum = "Week ${index+1}"
                 val done = week.numOfWorkoutsDone == week.totalNumOfWorkouts
-                Surface (
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceContainer,
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .padding(start = 10.dp),
-                    ) {
-                        Text(
-                            style = MaterialTheme.typography.titleLarge,
-                            text = weekNum,
-                        )
-                        val text = if (done) "This Week (COMPLETED)" else "This Week (IN PROGRESS)"
-                        if (index == weeksPassed(date)){
-                            Spacer(modifier = Modifier.padding(5.dp))
-                            Text(
-                                style = MaterialTheme.typography.titleMedium,
-                                text = text,
-                            )
-                        }
-
-                    }
-                }
+                WeekTitle(weekNum, done, index, date)
                 for(i in 0 until week.numOfWorkoutsDone) {
                     val position = getAlignment(start, direction)
                     if (position == 1.5 || position == -1.5 && start > 3) {
@@ -182,7 +166,7 @@ fun onGoingPlan(
         }
         val endWeek = plan.weeksList[plan.weeks - 1]
         val finished = endWeek.totalNumOfWorkouts == endWeek.numOfWorkoutsDone
-        switchPlan(
+        SwitchPlan(
             finished = finished,
             deletePlan = deletePlan
         ) { infoViewModel.addFinishedPlan(plan.name) }
@@ -190,7 +174,54 @@ fun onGoingPlan(
 }
 
 @Composable
-fun switchPlan(finished: Boolean, deletePlan: () -> Unit, onComplete: () -> Unit) {
+fun LinedText(content: @Composable () -> Unit) {
+    Row (
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Line to the left of the text
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            thickness = 2.dp
+        )
+        Spacer(modifier = Modifier.padding(5.dp))
+        // The text content
+        content()
+        Spacer(modifier = Modifier.padding(5.dp))
+        // Line to the right of the text
+        HorizontalDivider(
+            modifier = Modifier
+                .weight(1f),
+            thickness = 2.dp
+        )
+    }
+}
+
+
+@Composable
+fun WeekTitle(weekNum: String, done: Boolean, index: Int, date: Date) {
+    Surface (
+        modifier = Modifier.fillMaxWidth().padding(10.dp),
+    ) {
+        LinedText {
+            val status = if (index == weeksPassed(date)) " - This Week" else ""
+            Text(
+                fontSize = 20.sp,
+                text = buildAnnotatedString {
+                    append(weekNum)
+                    if (index == weeksPassed(date))
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurface)) {
+                            append(status)
+                        }
+                },
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+@Composable
+fun SwitchPlan(finished: Boolean, deletePlan: () -> Unit, onComplete: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center)
@@ -217,7 +248,7 @@ fun switchPlan(finished: Boolean, deletePlan: () -> Unit, onComplete: () -> Unit
         }
         FancyLongButton(
             modifier = Modifier.padding(10.dp),
-            warning = if (finished) false else true,
+            warning = !finished,
             onClick = { openAlertDialog = true },
             text = if (finished) "Complete Plan" else "Switch plan"
         )

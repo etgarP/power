@@ -42,7 +42,9 @@ fun History1(
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabTexts = listOf("Workouts", "Plans")
     Scaffold {
-        Column(modifier = modifier.fillMaxSize().padding(it)) {
+        Column(modifier = modifier
+            .fillMaxSize()
+            .padding(it)) {
             PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
                 tabTexts.forEachIndexed { index, text ->
                     val color by animateColorAsState(
@@ -147,41 +149,6 @@ fun PlanHistory(
     completedList: List<HistoryItem>,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn() {
-            items(completedList) { completed ->
-                PlanHistoryCard(
-                    title = completed.name,
-                    date = completed.date,
-                )
-            }
-        }
-        if (completedList.isEmpty())
-            Text(
-                text = "No workouts were finished",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error
-            )
-    }
-}
-@Composable
-fun WorkoutHistory(
-    completedList: List<HistoryItem>,
-    onClick: (String) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn() {
-            items(completedList) { completed ->
-                WorkoutHistoryCard(
-                    title = completed.name,
-                    date = completed.date,
-                    onClick = {onClick(completed.name)}
-                )
-            }
-        }
         if (completedList.isEmpty())
             Text(
                 text = "No plans were finished",
@@ -192,5 +159,57 @@ fun WorkoutHistory(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.error
             )
+        else {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "${completedList.size} plans completed",
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.padding(2.dp))
+        }
+        LazyColumn(reverseLayout = true) {
+            items(completedList) { completed ->
+                PlanHistoryCard(
+                    title = completed.name,
+                    date = completed.date,
+                )
+            }
+        }
+    }
+}
+@Composable
+fun WorkoutHistory(
+    completedList: List<HistoryItem>,
+    onClick: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (completedList.isEmpty())
+            Text(
+                text = "No workouts were finished",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        else {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "${completedList.size} workouts completed",
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.padding(2.dp))
+        }
+            
+        LazyColumn(reverseLayout = true) {
+            items(completedList) { completed ->
+                WorkoutHistoryCard(
+                    title = completed.name,
+                    date = completed.date,
+                    onClick = {onClick(completed.name)}
+                )
+            }
+        }
     }
 }

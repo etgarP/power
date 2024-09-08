@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +60,7 @@ val exitSide: ExitTransition = slideOut(tween(100, easing = FastOutSlowInEasing)
 } + fadeOut(animationSpec = tween(delayMillis = 90))
 val enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
     IntOffset(-180, 0)
-} + fadeIn(animationSpec = tween(220, delayMillis = 90))
+} + fadeIn(animationSpec = tween(90))
 val exit = slideOut(tween(100, easing = FastOutSlowInEasing)) {
     IntOffset(-180, 0)
 } + fadeOut(animationSpec = tween(delayMillis = 90))
@@ -75,27 +74,14 @@ fun Home(
     startWorkout: (String, String) -> Unit = { _: String, _: String -> }
 ) {
     Column {
-        TopArea()
         val infoViewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory)
+        val selected = infoViewModel.planSelected
         AnimatedVisibility(
-            infoViewModel.choosingPlan,
-            enter = enterSide, exit = exitSide,
+            selected == 2, enter = enter, exit = exit
         ) {
-            PlanQuickStart(
-                onBack = { infoViewModel.choosingPlan = false },
-                onSelect = { selectedPlan ->
-                    infoViewModel.choosingPlan = false
-                    infoViewModel.planSelected = 2
-                    infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
-                }
-            )
-        }
-        AnimatedVisibility(
-            !infoViewModel.choosingPlan, enter = enter, exit = exit
-        ) {
-            if (infoViewModel.planSelected == 2){
-                val plan = infoViewModel.getCurrentPlan()
-                if (plan != null)
+            val plan = infoViewModel.getCurrentPlan()
+            if (plan != null)
+                Surface (){
                     onGoingPlan(deletePlan =
                     {
                         infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = null))
@@ -104,54 +90,72 @@ fun Home(
                         plan = plan,
                         startWorkout = startWorkout
                     )
-
-            }
-            AnimatedVisibility(
-                infoViewModel.planSelected == 1, enter = enter, exit = exit
-            ) {
+                    TopArea()
+                }
+        }
+        AnimatedVisibility(
+            selected == 1, enter = enter, exit = exit
+        ) {
+            Column {
+                TopArea()
                 NotYetChosen(
-                    moveToQuickStart = { infoViewModel.choosingPlan = true },
+                    moveToQuickStart = { infoViewModel.planSelected = 5 },
                     allPlans = { infoViewModel.planSelected = 3 }
                 ) { infoViewModel.planSelected = 4 }
             }
-
-            SwitchToAllPlans(
-                switch = infoViewModel.planSelected == 3,
-                onSelect = { selectedPlan ->
-                    infoViewModel.choosingPlan = false
-                    infoViewModel.planSelected = 2
-                    infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
-                }
-            ) { infoViewModel.planSelected = 1 }
-            SwitchToAllWorkouts(
-                switch = infoViewModel.planSelected == 4, onClick = startWorkoutNoPlan
-            ) { infoViewModel.planSelected = 1 }
         }
-    }
+        AnimatedVisibility(
+            selected == 5, enter = enterSide, exit = exitSide,
+        ) {
 
+        }
+        SwitchToQuickSelect(
+            switch = selected == 5,
+            onBack = { infoViewModel.planSelected = 1 },
+            onSelect = { selectedPlan ->
+                infoViewModel.planSelected = 2
+                infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
+            }
+        )
+        SwitchToAllPlans(
+            switch = selected == 3,
+            onSelect = { selectedPlan ->
+                infoViewModel.planSelected = 2
+                infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
+            }
+        ) { infoViewModel.planSelected = 1 }
+        SwitchToAllWorkouts(
+            switch = infoViewModel.planSelected == 4, onClick = startWorkoutNoPlan
+        ) { infoViewModel.planSelected = 1 }
+    }
 }
 
 @Composable
 fun TopArea() {
-    val dark = isSystemInDarkTheme()
-    // Example of usage in code later on:
-    Row (
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Image(
+    Column {
+        val dark = isSystemInDarkTheme()
+        // Example of usage in code later on:
+        Row (
             modifier = Modifier
-                .size(105.dp),
-            painter = painterResource(
-                id = if (dark) R.drawable.power_logo1_dark else R.drawable.power_logo1
-            ),
-            contentDescription = "power logo"
-        )
+                .fillMaxWidth()
+                .height(65.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.70f)
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(100.dp),
+                painter = painterResource(
+                    id = if (dark) R.drawable.power_logo1_dark else R.drawable.power_logo1
+                ),
+                contentDescription = "power logo"
+            )
+        }
+//        Divider(color = MaterialTheme.colorScheme.outlineVariant)
     }
-    Divider(color = MaterialTheme.colorScheme.outlineVariant)
 
 }
 
@@ -234,20 +238,32 @@ fun SwitchToAllPlans(
     onBack: () -> Unit
 ) {
     AnimatedVisibility(
-        switch,
-        enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
-            IntOffset(+180, 0)
-        } + fadeIn(animationSpec = tween(220, delayMillis = 90)),
-        exit = slideOut(tween(100, easing = FastOutSlowInEasing)) {
-            IntOffset(+180, 0)
-        } + fadeOut(animationSpec = tween(delayMillis = 90)),
+        switch, enter = enterSide, exit = exitSide
     ) {
         val viewModel: PlanViewModel = viewModel(factory = AppViewModelProvider.Factory)
         val plans by viewModel.plans.collectAsState()
-        chooseFilteredPlan(filterPlans = false, plans = plans, onSelect = onSelect)
+        Column {
+            chooseFilteredPlan(filterPlans = false, plans = plans, onSelect = onSelect)
+        }
         BackHandler {
             onBack()
         }
+    }
+}
+
+@Composable
+fun SwitchToQuickSelect(
+    switch: Boolean,
+    onSelect: (Plan) -> Unit = {},
+    onBack: () -> Unit
+) {
+    AnimatedVisibility(
+        switch, enter = enterSide, exit = exitSide
+    ) {
+        PlanQuickStart(
+            onBack = onBack,
+            onSelect = onSelect
+        )
     }
 }
 

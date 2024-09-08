@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Power</string>
+    <string name="app_name_test">PowerTest</string>
     <string name="select_a_plan">Select a plan</string>
     <string name="workouts_per_week">Workouts Per Week</string>
     <string name="exercises">Exercises</string>

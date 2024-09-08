@@ -81,7 +81,7 @@ val bodyTypeMapFromString: Map<String, BodyType> = mapOf(
 @Entity(tableName = "exercises")
 open class Exercise(
     @PrimaryKey(autoGenerate = true)
-    var id: Int,
+    var id: Int = 0,
     @SerializedName("type") var type: ExerciseType,
     @SerializedName("body") var body: BodyType,
     @SerializedName("name") var name: String = ""
