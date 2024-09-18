@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,15 +40,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
 import com.example.power.data.room.Workout
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.plan.PlanDetails
-import com.example.power.data.view_models.plan.PlanEntryViewModel
-import com.example.power.data.view_models.plan.WorkoutItem
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.plan.PlanDetails
+import com.example.power.data.viewmodels.plan.PlanEntryViewModel
+import com.example.power.data.viewmodels.plan.WorkoutItem
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.configure.BottomTitleCard
 import com.example.power.ui.configure.Plan.exercise.DropMenu
 import com.example.power.ui.configure.Plan.workout.RightHandNavButton
 import com.example.power.ui.configure.Section
+import com.example.power.ui.configure.TopExpandableTitleCard
 import com.example.power.ui.configure.performHapticFeedback
 import com.example.power.ui.configure.workout.SwipableItem
 import com.example.power.ui.rememberDragDropListState
@@ -72,7 +71,6 @@ fun EditPlan(
         if (firstTime) {
             val isPlan = viewModel.loadPlanDetails(planName)
             if (!isPlan) onBack()
-            viewModel.updateWorkouts()
         }
         firstTime = false
 
@@ -125,7 +123,6 @@ fun AddPlan(
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditOrAddPlan(
     modifier: Modifier = Modifier,
@@ -183,7 +180,6 @@ fun EditOrAddPlan(
     }
 }
 @RequiresApi(Build.VERSION_CODES.Q)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlanInputForm(
     planDetails: PlanDetails,
@@ -192,8 +188,7 @@ fun PlanInputForm(
     removeWorkout: (WorkoutItem) -> Unit,
     swapItems: (Int, Int) -> Unit,
 ) {
-    val typesOfPlan = listOf<String>("Gym Plan",
-        "Body-Weight Plan", "Dumbbells Plan")
+    val typesOfPlan = listOf("Gym Plan", "Body-Weight Plan", "Dumbbells Plan")
     ReorderableWorkoutlist(
         planDetails = planDetails,
         onValueChange = onValueChange,
@@ -230,10 +225,10 @@ fun PlanInputForm(
                      },
                     onValueChange = {
                         var weeks = 0
-                        try {
-                            weeks = it.toInt()
+                        weeks = try {
+                            it.toInt()
                         } catch (_: Exception) {
-                            weeks = 0
+                            0
                         }
                         onValueChange(
                             planDetails.copy(weeks = weeks))
@@ -241,8 +236,8 @@ fun PlanInputForm(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     label = { Text(text = "Number of weeks") }
                 )
-                Spacer(modifier = Modifier.padding(5.dp))
-                if (planDetails.weeks > 100 || planDetails.weeks < 1)
+                if (planDetails.weeks > 100 || planDetails.weeks < 1) {
+                    Spacer(modifier = Modifier.padding(5.dp))
                     Text(
                         text = "0 < weeks < 101",
                         modifier = Modifier
@@ -250,6 +245,8 @@ fun PlanInputForm(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
+                }
+
 
                 DropMenu(
                     modifier = Modifier
@@ -344,7 +341,6 @@ fun WorkoutsHolder(
                 onDismiss = {
                     removeExerciseHolder(item)
                     list = list.toMutableList() - item
-                    onValueChange(planDetails.copy(workouts = list))
                 }) {
                 WorkoutCard(
                     workout = item.workout,
@@ -384,7 +380,7 @@ fun WorkoutCard(
     workout: Workout,
     isDragging: Boolean,
 ) {
-    BottomTitleCard(
+    TopExpandableTitleCard(
         title = workout.name,
         isDragging = isDragging
     ) {

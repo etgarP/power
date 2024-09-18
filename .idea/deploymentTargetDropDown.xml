@@ -2,6 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="TopTitleCardPreview">
+        <State>
+          <runningDeviceTargetSelectedWithDropDown>
+            <Target>
+              <type value="RUNNING_DEVICE_TARGET" />
+              <deviceKey>
+                <Key>
+                  <type value="SERIAL_NUMBER" />
+                  <value value="c457f010" />
+                </Key>
+              </deviceKey>
+            </Target>
+          </runningDeviceTargetSelectedWithDropDown>
+          <timeTargetWasSelectedWithDropDown value="2024-09-18T14:26:41.201704900Z" />
+        </State>
+      </entry>
       <entry key="app">
         <State>
           <runningDeviceTargetSelectedWithDropDown>
@@ -15,7 +31,7 @@
               </deviceKey>
             </Target>
           </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-09-08T10:55:05.564349600Z" />
+          <timeTargetWasSelectedWithDropDown value="2024-09-18T16:43:05.079693200Z" />
         </State>
       </entry>
     </value>

@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.PlanType
 import com.example.power.data.room.planTypeToStringMap
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.plan.PlanViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.plan.PlanViewModel
 import com.example.power.ui.PlanScreens
 import com.example.power.ui.SearchItem
 import com.example.power.ui.configure.Plan.exercise.GeneralHolder

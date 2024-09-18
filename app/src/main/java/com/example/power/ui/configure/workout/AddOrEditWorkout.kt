@@ -30,10 +30,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.workout.ExerciseHolderItem
-import com.example.power.data.view_models.workout.WorkoutDetails
-import com.example.power.data.view_models.workout.WorkoutEntryViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.workout.ExerciseHolderItem
+import com.example.power.data.viewmodels.workout.WorkoutDetails
+import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
 import kotlinx.coroutines.launch
 

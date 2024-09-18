@@ -5,7 +5,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
@@ -39,8 +38,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.power.R
-import com.example.power.data.view_models.workout.ExerciseHolderItem
-import com.example.power.data.view_models.workout.WorkoutDetails
+import com.example.power.data.viewmodels.workout.ExerciseHolderItem
+import com.example.power.data.viewmodels.workout.WorkoutDetails
 import com.example.power.ui.configure.Section
 import com.example.power.ui.configure.performHapticFeedback
 import com.example.power.ui.configure.workout.ExerciseHolderComposable

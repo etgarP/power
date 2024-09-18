@@ -70,8 +70,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Workout
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.LoadInitialDataViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.LoadInitialDataViewModel
 import com.example.power.ui.History.History
 import com.example.power.ui.configure.Configure
 import com.example.power.ui.configure.Plan.ChoosePlan

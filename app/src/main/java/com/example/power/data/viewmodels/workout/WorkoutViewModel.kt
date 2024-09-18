@@ -1,4 +1,4 @@
-package com.example.power.data.view_models.workout
+package com.example.power.data.viewmodels.workout
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

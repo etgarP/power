@@ -1,4 +1,4 @@
-package com.example.power.data.view_models
+package com.example.power.data.viewmodels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

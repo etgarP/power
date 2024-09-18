@@ -1,7 +1,6 @@
 package com.example.power.data.repository.exercise
 
 import com.example.power.data.room.Exercise
-import com.example.power.data.view_models.exercise.ExerciseDetails
 import kotlinx.coroutines.flow.Flow
 
 /**

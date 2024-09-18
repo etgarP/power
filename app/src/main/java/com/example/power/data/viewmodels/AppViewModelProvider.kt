@@ -1,4 +1,4 @@
-package com.example.power.data.view_models
+package com.example.power.data.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
@@ -6,12 +6,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.power.PowerApplication
-import com.example.power.data.view_models.exercise.ExerciseEntryViewModel
-import com.example.power.data.view_models.exercise.ExerciseViewModel
-import com.example.power.data.view_models.plan.PlanEntryViewModel
-import com.example.power.data.view_models.plan.PlanViewModel
-import com.example.power.data.view_models.workout.WorkoutEntryViewModel
-import com.example.power.data.view_models.workout.WorkoutViewModel
+import com.example.power.data.viewmodels.exercise.ExerciseEntryViewModel
+import com.example.power.data.viewmodels.exercise.ExerciseViewModel
+import com.example.power.data.viewmodels.plan.PlanEntryViewModel
+import com.example.power.data.viewmodels.plan.PlanViewModel
+import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
+import com.example.power.data.viewmodels.workout.WorkoutViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire Inventory app
@@ -48,10 +48,7 @@ object AppViewModelProvider {
             PlanViewModel(powerApplication().container.plansRepository)
         }
         initializer {
-            PlanEntryViewModel(
-                powerApplication().container.plansRepository,
-                powerApplication().container.workoutsRepository
-            )
+            PlanEntryViewModel(powerApplication().container.plansRepository)
         }
         initializer {
             InfoViewModel(powerApplication().container.infoRepository)

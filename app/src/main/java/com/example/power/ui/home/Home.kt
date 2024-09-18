@@ -45,9 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.R
 import com.example.power.data.room.Plan
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.InfoViewModel
-import com.example.power.data.view_models.plan.PlanViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.InfoViewModel
+import com.example.power.data.viewmodels.plan.PlanViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.WorkoutPageForPlan
 import com.example.power.ui.configure.Section

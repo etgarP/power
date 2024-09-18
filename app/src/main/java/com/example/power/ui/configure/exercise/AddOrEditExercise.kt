@@ -32,9 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.exercise.ExerciseDetails
-import com.example.power.data.view_models.exercise.ExerciseEntryViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.exercise.ExerciseDetails
+import com.example.power.data.viewmodels.exercise.ExerciseEntryViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.ExerciseScreens
 import kotlinx.coroutines.launch
@@ -215,7 +215,7 @@ fun DropMenu(
             modifier = Modifier
                 .fillMaxWidth()
                 .menuAnchor()
-                .padding(top = 15.dp),
+                .padding(top = 11.dp),
             readOnly = true,
             value = value,
             onValueChange = {onValueChange(it)},

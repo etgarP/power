@@ -1,29 +1,24 @@
-package com.example.power.data.view_models.plan
+package com.example.power.data.viewmodels.plan
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.power.data.repository.PlanRepository
-import com.example.power.data.repository.WorkoutRepository
-import com.example.power.data.room.Exercise
 import com.example.power.data.room.Plan
 import com.example.power.data.room.Workout
 import com.example.power.data.room.planTypeToStringMap
 import com.example.power.data.room.stringToPlanTypeMap
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 /**
- * ViewModel to validate and insert exercises in the Room database.
+ * ViewModel to validate and insert and edit plans in the Room database.
  */
 class PlanEntryViewModel(
     private val planRepository: PlanRepository,
-    private val workoutsRepository: WorkoutRepository
 ) : ViewModel() {
 
     /**
-     * Holds current exercise ui state
+     * Holds current plan ui state
      */
     var planUiState by mutableStateOf(PlanUiState())
         private set
@@ -36,24 +31,40 @@ class PlanEntryViewModel(
         planUiState =
             PlanUiState(planDetails = workoutDetails, isEntryValid = validateInput(workoutDetails))
     }
+
+    /**
+    * validate the input detail for the plan.
+     * checks the name isn't blank, that there are workouts, max 100 weeks, and at least 1 week.
+    */
     private fun validateInput(uiState: PlanDetails = planUiState.planDetails): Boolean {
         return with(uiState) {
             name.isNotBlank() && name.length < 50 && workouts.isNotEmpty()
                     && weeks <= 100 && weeks > 0
         }
     }
+
+    /**
+     * saves the current plan to the repository if it is valid
+     */
     suspend fun savePlan() {
         if (validateInput()) {
-            val plan = planUiState.planDetails.toWorkout()
+            val plan = planUiState.planDetails.toPlan()
             if (plan != null) planRepository.insertPlan(plan)
         }
     }
+
+    /**
+     * updates the plan in the repository if its valid
+     */
     suspend fun updatePlan() {
         if (validateInput()) {
-            planUiState.planDetails.toWorkout()?.let { planRepository.updatePlan(it) }
+            planUiState.planDetails.toPlan()?.let { planRepository.updatePlan(it) }
         }
     }
 
+    /**
+     * removes a workout from the plan
+     */
     fun removeWorkout(workoutItem: WorkoutItem) {
         val position = workoutItem.workout.position
         val list = planUiState.planDetails.workouts
@@ -69,18 +80,10 @@ class PlanEntryViewModel(
         }
         updateUiState(planUiState.planDetails.copy(workouts = newList))
     }
-    suspend fun updateWorkouts() {
-        withContext(Dispatchers.IO) {
-            for (workout in planUiState.planDetails.workouts) {
-                val w = workoutsRepository.getWorkout(workout.workout.id)
-                if (w != null) {
-                    workout.workout.exercises = w.exercises
-                }
-            }
-            updateUiState(planUiState.planDetails.copy())
-            updatePlan()
-        }
-    }
+
+    /**
+     * loads the plan details from room
+     */
     suspend fun loadPlanDetails(planName: String?) : Boolean {
         if (planName != null) {
             val plan = planRepository.getPlanByName(planName)
@@ -92,10 +95,17 @@ class PlanEntryViewModel(
         return false
     }
 
+    /**
+     * takes a workout and adds it to the workouts of the plan
+     */
     fun addWorkout(workout: Workout) {
         workout.position = planUiState.planDetails.workouts.size
         planUiState.planDetails.workouts = planUiState.planDetails.workouts + workout.toItem()
     }
+
+    /**
+     * reorders the two items with two different indexes on the list
+     */
     fun reorderList(firstIndex: Int, secondIndex: Int) {
         val list = planUiState.planDetails.workouts
         val newList = list.toMutableList().apply {
@@ -118,17 +128,36 @@ data class PlanUiState(
     val isEntryValid: Boolean = false,
 )
 
+/**
+ * holds a workout,
+ * the unique key is useful for displaying the workout in a lazy column
+ */
 data class WorkoutItem(
     val workout: Workout,
     val uniqueKey: String = UUID.randomUUID().toString()
 )
 
+/**
+ * makes a workout item
+ */
 fun Workout.toItem() = WorkoutItem(this)
-fun toWorkoutItemList(workouts: List<Workout>) =
-    workouts.map { it -> it.toItem() }
-fun toWorkoutList(workouts: List<WorkoutItem>) =
-    workouts.map { it -> it.workout }
 
+/**
+ * converts a workout list to workout item list
+ */
+fun toWorkoutItemList(workouts: List<Workout>) =
+    workouts.map { it.toItem() }
+
+/**
+ * converts a workout item list to workout list
+ */
+fun toWorkoutList(workouts: List<WorkoutItem>) =
+    workouts.map { it.workout }
+
+/**
+ * holds a plan with all of its information
+ * this object makes it easier to edit the plan through the ui
+ */
 data class PlanDetails(
     var id: Int = 0,
     var name: String = "",
@@ -138,11 +167,9 @@ data class PlanDetails(
 )
 
 /**
- * Extension function to convert [PlanDetails] to [Exercise]. If the value of [PlanDetails.price] is
- * not a valid [Double], then the price will be set to 0.0. Similarly if the value of
- * [ItemDetails.quantity] is not a valid [Int], then the quantity will be set to 0
+ * Extension function to convert [PlanDetails] to [Plan].
  */
-fun PlanDetails.toWorkout(): Plan? {
+fun PlanDetails.toPlan(): Plan? {
     val plan = stringToPlanTypeMap[type]?.let {
         Plan(
             id = id,
@@ -158,7 +185,7 @@ fun PlanDetails.toWorkout(): Plan? {
 
 
 /**
- * Extension function to convert [Item] to [ItemUiState]
+ * Extension function to convert [Plan] to [PlanUiState]
  */
 fun Plan.toPlanUiState(isEntryValid: Boolean = false): PlanUiState = PlanUiState(
     planDetails = this.toPlanDetails(),
@@ -166,7 +193,7 @@ fun Plan.toPlanUiState(isEntryValid: Boolean = false): PlanUiState = PlanUiState
 )
 
 /**
- * Extension function to convert [Item] to [ItemDetails]
+ * Extension function to convert [Plan] to [PlanDetails]
  */
 fun Plan.toPlanDetails(): PlanDetails = PlanDetails(
     id = id,

@@ -20,8 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Workout
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.workout.WorkoutViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.workout.WorkoutViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.SearchItem
 import com.example.power.ui.configure.Plan.workout.ExerciseComposable

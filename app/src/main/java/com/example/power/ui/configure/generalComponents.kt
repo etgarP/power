@@ -7,6 +7,7 @@ import android.os.Vibrator
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,13 +35,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.power.R
 import java.text.SimpleDateFormat
@@ -106,7 +109,7 @@ fun ChoosePlanBtn(modifier: Modifier = Modifier) {
 fun WorkoutCardPreview(
     modifier: Modifier = Modifier
 ) {
-    BottomTitleCard(title = "workout", content = {
+    TopExpandableTitleCard(title = "workout", content = {
         Text(text = "3 X dumbbell deadlift")
         Text(text = "3 X dumbbell deadlift")
         Text(text = "3 X dumbbell deadlift")
@@ -211,50 +214,13 @@ fun TopBigTitleCard(
 
 @Preview
 @Composable
-fun planSelect() {
-    TopBigTitleCard(title = "plan name") {
-        Column() {
-            Spacer(Modifier.padding(10.dp))
-            Text(
-                modifier = Modifier.padding(horizontal = 10.dp),
-                text = "Gym Plan",
-                fontSize = 18.sp
-            )
-            Spacer(Modifier.padding(10.dp))
-            HorizontalDivider()
-            Spacer(Modifier.padding(10.dp))
-            Text(
-                modifier = Modifier.padding(horizontal = 10.dp),
-                text = "7 Weeks",
-                fontSize = 22.sp
-            )
-            Spacer(Modifier.padding(10.dp))
-            HorizontalDivider()
-            Spacer(Modifier.padding(4.dp))
-            Row {
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .weight(1f),
-                    text = "5 Workouts Per Week:",
-                    fontSize = 22.sp
-                )
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        imageVector = Icons.Filled.ExpandMore,
-                        contentDescription = "see more"
-                    )
-                }
-            }
-            Spacer(Modifier.padding(4.dp))
-            HorizontalDivider()
-        }
-
+fun TopTitleCardPreview() {
+    TopExpandableTitleCard(title = "title") {
+        Text(text = "CONTENT")
     }
 }
-
 @Composable
-fun BottomTitleCard(
+fun TopExpandableTitleCard(
     modifier: Modifier = Modifier,
     title: String,
     isDragging: Boolean = false,
@@ -266,27 +232,37 @@ fun BottomTitleCard(
         if (isDragging) colorPressed else colorNotPressed,
         label = "color"
     )
+    var expanded by mutableStateOf(false)
     Card(
-        modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+        modifier = modifier.padding(horizontal = 8.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         colors = CardDefaults.cardColors(containerColor = animatedColor)
     ) {
         Column(modifier = Modifier.padding(vertical = 5.dp) ) {
             Row(
-                modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column() {
-                    content()
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (!expanded) Icons.Filled.ExpandMore
+                        else Icons.Filled.ExpandLess,
+                        contentDescription = "see more"
+                    )
                 }
-
             }
-            HorizontalDivider()
-            Row(
-                modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
+            Column(modifier = Modifier.animateContentSize()) {
+                if (expanded) {
+                    HorizontalDivider()
+                    Column(modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp)){
+                        content()
+                    }
+                }
             }
         }
     }

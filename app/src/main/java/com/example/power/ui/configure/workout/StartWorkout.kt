@@ -35,10 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.bodyTypeMap
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.InfoViewModel
-import com.example.power.data.view_models.workout.ExerciseHolderItem
-import com.example.power.data.view_models.workout.WorkoutEntryViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.InfoViewModel
+import com.example.power.data.viewmodels.workout.ExerciseHolderItem
+import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
 import com.example.power.ui.configure.Plan.exercise.MyAlertDialog

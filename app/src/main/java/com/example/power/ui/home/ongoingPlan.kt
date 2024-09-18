@@ -53,8 +53,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Plan
 import com.example.power.data.room.Week
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.InfoViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.InfoViewModel
 import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

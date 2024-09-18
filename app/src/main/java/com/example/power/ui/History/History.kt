@@ -27,8 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.HistoryItem
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.InfoViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.InfoViewModel
 import com.example.power.ui.configure.PlanHistoryCard
 import com.example.power.ui.configure.WorkoutHistoryCard
 

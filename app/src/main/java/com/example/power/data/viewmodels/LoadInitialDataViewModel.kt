@@ -1,4 +1,4 @@
-package com.example.power.data.view_models
+package com.example.power.data.viewmodels
 
 import PlanBuilder
 import androidx.compose.runtime.getValue

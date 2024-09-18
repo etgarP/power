@@ -1,11 +1,12 @@
 package com.example.power.data.repository.exercise
 
-import com.example.power.data.repository.exercise.ExercisesRepository
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.dao.ExerciseDao
-import com.example.power.data.view_models.exercise.ExerciseDetails
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * same as exercise repository
+ */
 class OfflineExercisesRepository(private val exerciseDao: ExerciseDao) : ExercisesRepository {
     override fun getAllExercisesStream(): Flow<List<Exercise>> = exerciseDao.getAllExercises()
 

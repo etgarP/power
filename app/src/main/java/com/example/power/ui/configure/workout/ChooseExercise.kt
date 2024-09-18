@@ -25,8 +25,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.bodyTypeMap
 import com.example.power.data.room.exerciseTypeMap
-import com.example.power.data.view_models.AppViewModelProvider
-import com.example.power.data.view_models.exercise.ExerciseViewModel
+import com.example.power.data.viewmodels.AppViewModelProvider
+import com.example.power.data.viewmodels.exercise.ExerciseViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.SearchItem
 import com.example.power.ui.configure.Plan.exercise.ExerciseFilterRow
