@@ -65,7 +65,7 @@ import com.example.power.data.room.planTypeToStringMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.plan.FilterParams
 import com.example.power.data.viewmodels.plan.PlanViewModel
-import com.example.power.ui.configure.TopBigTitleCard
+import com.example.power.ui.configure.components.TopBigTitleCard
 import com.example.power.ui.workout.WorkoutCard
 import kotlinx.coroutines.launch
 
@@ -410,7 +410,8 @@ fun PlanHolderForChoose(
             modifier,
             title = planName,
             isDragging = false,
-            onClick = { onSelect(plan) }
+            onClick = { onSelect(plan) },
+            btnText = "Choose This Plan"
         ) {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Spacer(Modifier.padding(10.dp))
@@ -452,8 +453,9 @@ fun PlanHolderForChoose(
                 Spacer(Modifier.padding(4.dp))
                 Column(modifier = Modifier.animateContentSize()) {
                     if (expanded) {
-                        for(workout in workouts)
-                            WorkoutCard(workout = workout, isDragging = false)
+                        for(workout in workouts){
+                            WorkoutCard(modifier = Modifier.padding(bottom = 10.dp), workout = workout, isDragging = false)
+                        }
                     }
                 }
                 HorizontalDivider()

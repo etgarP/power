@@ -5,38 +5,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.exercise.ExerciseDetails
 import com.example.power.data.viewmodels.exercise.ExerciseEntryViewModel
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.ExerciseScreens
+import com.example.power.ui.configure.components.DropMenuOutlined
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 
@@ -44,6 +28,9 @@ val bodyTypes = listOf("Arms", "Core", "Back", "Chest", "Legs", "Shoulders", "Ca
 
 val category = listOf("Weight", "Reps", "Duration", "Cardio")
 
+/**
+ * the screen for editing exercises
+ */
 @Composable
 fun EditExercise(
     modifier: Modifier = Modifier,
@@ -51,6 +38,7 @@ fun EditExercise(
     onBack: () -> Unit,
     viewModel: ExerciseEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // gets the workout details, if not found returns
     LaunchedEffect(exerciseName) {
         val isExerciseExist = viewModel.loadExerciseDetails(exerciseName)
         if (!isExerciseExist) onBack()
@@ -67,6 +55,9 @@ fun EditExercise(
     )
 }
 
+/**
+ * the screen for adding an exercise
+ */
 @Composable
 fun AddExercise(
     modifier: Modifier = Modifier,
@@ -85,7 +76,9 @@ fun AddExercise(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * the form for adding or editing
+ */
 @Composable
 fun EditOrAddExercise(
     modifier: Modifier = Modifier,
@@ -101,6 +94,7 @@ fun EditOrAddExercise(
     Scaffold(
         modifier = modifier,
         topBar = {
+            // top bar
             AppTopBar(enableBack = true, title = title, backFunction = onBack)
         },
     ) { paddingValues ->
@@ -110,11 +104,13 @@ fun EditOrAddExercise(
                  .fillMaxWidth()
                  .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally) {
+             // the input form
             ExerciseInputForm(
                 modifier = Modifier,
                 exerciseDetails = exerciseDetails,
                 onValueChange = onValueChange, onBack = onBack
             )
+             // button for saving
             Button(
                 enabled = valid,
                 modifier = Modifier.padding(top = 15.dp),
@@ -131,7 +127,9 @@ fun EditOrAddExercise(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * the exercise input form
+ */
 @Composable
 fun ExerciseInputForm(
     modifier: Modifier = Modifier,
@@ -140,16 +138,19 @@ fun ExerciseInputForm(
     onBack: () -> Unit,
 ) {
     Column(modifier) {
+        // form for entering exercise
         OutlinedTextField(
             modifier = Modifier.padding(top = 15.dp),
             value = exerciseDetails.name,
             onValueChange = { onValueChange(exerciseDetails.copy(name = it)) },
             label = { Text(text = "Exercise Name") }
         )
+        // form for entering body type
         DropMenuOutlined(options = bodyTypes, label = "Target body part",
             onValueChange = {bodyType -> onValueChange(exerciseDetails.copy(body = bodyType))},
             value = exerciseDetails.body
         )
+        // form for entering category of exercise
         DropMenuOutlined(options = category, label = "Category",
             onValueChange = {type -> onValueChange(exerciseDetails.copy(type = type))},
             value = exerciseDetails.type
@@ -158,110 +159,3 @@ fun ExerciseInputForm(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropMenuOutlined(
-    options: List<String>,
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            modifier = Modifier
-                .menuAnchor()
-                .padding(top = 15.dp),
-            readOnly = true,
-            value = value,
-            onValueChange = {onValueChange(it)},
-            label = { Text(text = label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        onValueChange(selectionOption)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropMenu(
-    modifier: Modifier = Modifier,
-    options: List<String>,
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        modifier = modifier,
-        expanded = expanded,
-        onExpandedChange = { expanded = it }
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor()
-                .padding(top = 11.dp),
-            readOnly = true,
-            value = value,
-            onValueChange = {onValueChange(it)},
-            label = { Text(text = label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-        )
-        ExposedDropdownMenu(
-            modifier = Modifier,
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    modifier = Modifier,
-                    text = { Text(selectionOption) },
-                    onClick = {
-                        onValueChange(selectionOption)
-                        expanded = false
-                    },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-@Preview
-fun AddExercisePreview() {
-    AddExercise(onBack = {})
-}
-
-@Composable
-fun AddBtn(modifier: Modifier = Modifier, onAdd: () -> Unit) {
-    FloatingActionButton(
-        modifier = modifier,
-        onClick = { onAdd() },
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
-    }
-}
-
-@Composable
-fun SaveExerciseBtn(modifier: Modifier = Modifier, onAdd: (String) -> Unit) {
-    FloatingActionButton(modifier = modifier, onClick = { onAdd(ExerciseScreens.AddItem.route) }) {
-        Icon(imageVector = Icons.Filled.Save, contentDescription = "save")
-    }
-}

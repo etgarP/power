@@ -50,7 +50,7 @@ import com.example.power.data.viewmodels.InfoViewModel
 import com.example.power.data.viewmodels.plan.PlanViewModel
 import com.example.power.ui.AppTopBar
 import com.example.power.ui.configure.Plan.WorkoutPageForPlan
-import com.example.power.ui.configure.Section
+import com.example.power.ui.configure.components.Section
 
 val enterSide: EnterTransition = slideIn(tween(100, easing = FastOutSlowInEasing)) {
     IntOffset(+180, 0)

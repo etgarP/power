@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,19 +24,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.PlanType
 import com.example.power.data.room.planTypeToStringMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.plan.PlanViewModel
-import com.example.power.ui.PlanScreens
-import com.example.power.ui.SearchItem
-import com.example.power.ui.configure.Plan.exercise.GeneralHolder
-import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
-import com.example.power.ui.configure.Plan.workout.BottomSheetEditAndDelete
+import com.example.power.ui.configure.components.BottomSheetEditAndDelete
+import com.example.power.ui.configure.components.CollapsedInfo
+import com.example.power.ui.configure.components.MyAlertDialog
+import com.example.power.ui.configure.components.SearchItem
 
+/**
+ * the page to show all the plans
+ */
 @Composable
 fun Plans(
     modifier: Modifier = Modifier,
@@ -49,6 +48,9 @@ fun Plans(
     }
 }
 
+/**
+ * display plans, able to search them, edit and delete them
+ */
 @Composable
 fun PlansPage(
     modifier: Modifier = Modifier,
@@ -59,12 +61,14 @@ fun PlansPage(
     val plans by planViewModel.plans.collectAsState()
     Column(modifier = modifier.fillMaxSize()) {
         Spacer(modifier.heightIn(10.dp))
+        // search bar
         SearchItem(searchVal = searchText, setVal = planViewModel::onSearchTextChange)
+        // viewing the plans
         LazyColumn() {
             items(plans) { plan ->
                 val passesSearch = plan.doesMatchSearchQuery(searchText)
                 AnimatedVisibility(visible = passesSearch) {
-                    PlanHolder(
+                    CollapsedPlanInfo(
                         planName = plan.name,
                         numOfWorkouts = plan.workouts.size,
                         onEdit = { onItemClick(plan.name) },
@@ -88,9 +92,11 @@ fun PlansPage(
 
 }
 
-
+/**
+ * shows a collapsed plan with ability to delete and edit it
+ */
 @Composable
-fun PlanHolder(
+fun CollapsedPlanInfo(
     modifier: Modifier = Modifier,
     planName: String,
     numOfWorkouts: Int,
@@ -98,6 +104,7 @@ fun PlanHolder(
     onEdit: () -> Unit,
     onDelete: (String) -> Unit
 ) {
+    // alert dialog for deleting
     var openAlertDialog by remember { mutableStateOf(false) }
     when {
         openAlertDialog -> {
@@ -113,6 +120,7 @@ fun PlanHolder(
             )
         }
     }
+    // bottom sheet for options
     var showBottomSheet by remember { mutableStateOf(false) }
     BottomSheetEditAndDelete(
         onEdit = onEdit,
@@ -121,8 +129,9 @@ fun PlanHolder(
         setShowBottomSheet = { showBottomSheet = it },
         showBottomSheet = showBottomSheet
     )
+    // button to see more options
     planTypeToStringMap[typeOfPlan]?.let {
-        GeneralHolder(
+        CollapsedInfo(
         modifier = modifier,
         itemName = planName,
         secondaryInfo = "$numOfWorkouts Workouts A Week",
@@ -134,23 +143,5 @@ fun PlanHolder(
                 Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "show more options")
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun holderPreview() {
-    PlanHolder(
-        planName = "plan",
-        numOfWorkouts = 6,
-        typeOfPlan = PlanType.BODYWEIGHT,
-        onEdit = { /*TODO*/ },
-        onDelete = {}
-    )
-}
-@Composable
-fun AddPlanBtn(modifier: Modifier = Modifier, onAdd: (String) -> Unit) {
-    FloatingActionButton(modifier = modifier, onClick = { onAdd(PlanScreens.AddItem.route) }) {
-        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add")
     }
 }

@@ -1,4 +1,4 @@
-package com.example.power.ui
+package com.example.power.ui.configure.dragAndDropFeature
 
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
@@ -11,14 +11,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.Job
 
+/**
+ * returns a remember of the drag and drop list state
+ */
 @Composable
 fun rememberDragDropListState(
     lazyListState: LazyListState = rememberLazyListState(),
     onMove: (Int, Int) -> Unit
-): DragDropListState{
+): DragDropListState {
     return remember { DragDropListState(lazyListState = lazyListState, onMove = onMove) }
 }
 
+/**
+ * saves a state of the drag and drop list
+ */
 class DragDropListState (
     // a state of the lazy list
     val lazyListState: LazyListState,

@@ -7,6 +7,9 @@ import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.data.room.Workout
 
+/**
+ * a builder class to build a plan exercises and workouts to add to the app on first lunch
+ */
 class PlanBuilder {
     private val exercises = mutableListOf<Exercise>()
 

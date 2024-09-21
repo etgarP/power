@@ -8,13 +8,19 @@ import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 import java.util.Date
 
-
+/**
+ * different types of exercises
+ */
 enum class ExerciseType {
     REPS,
     DURATION,
     CARDIO,
     WEIGHT;
 }
+
+/**
+ * different body parts to work on
+ */
 enum class BodyType {
     CORE,
     ARMS,
@@ -25,12 +31,17 @@ enum class BodyType {
     CARDIO,
     OTHER
 }
+
+/**
+ * different types of plans
+ */
 enum class PlanType {
     CARDIO,
     GYM,
     BODYWEIGHT,
     DUMBBELLS
 }
+
 val planTypeToStringMap = mapOf(
     PlanType.CARDIO to "Cardio Plan",
     PlanType.GYM to "Gym Plan",
@@ -77,6 +88,9 @@ val bodyTypeMapFromString: Map<String, BodyType> = mapOf(
     "Other" to BodyType.OTHER
 )
 
+/**
+ * an exercise had an id, [ExerciseType], [BodyType], and name
+ */
 @Parcelize
 @Entity(tableName = "exercises")
 open class Exercise(
@@ -86,17 +100,29 @@ open class Exercise(
     @SerializedName("body") var body: BodyType,
     @SerializedName("name") var name: String = ""
 ) : Parcelable {
+    /**
+     * checks if a string is contained in the search query
+     * made for filtering exercises
+     */
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)
     }
 }
+
+/**
+ * holds additional info needed for a specific workout for an exercise
+ */
 @Parcelize
 open class ExerciseHolder(
-    @Transient open var position: Int = 0,
+    @Transient open var position: Int = 0, // what position the exercise is the workout (for a list)
     @Transient open var sets: Int = 1,
     @Transient open var breakTime: Int = 60,
     @Transient open var exercise: Exercise = Exercise(1, ExerciseType.WEIGHT, BodyType.BACK, "")
 ) : Parcelable
+
+/**
+ * holds specific info needed for a time based exercise like plank
+ */
 @Parcelize
 data class TimeExercise(
     var seconds: MutableList<Int> = mutableListOf(1),
@@ -105,6 +131,8 @@ data class TimeExercise(
     override var exercise: Exercise,
     override var position: Int,
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
+
+
 @Parcelize
 data class RepsExercise(
     var reps: MutableList<Int> = mutableListOf(1),
@@ -113,6 +141,10 @@ data class RepsExercise(
     override var exercise: Exercise,
     override var position: Int,
     ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
+
+/**
+ * holds specific info needed for a cardio exercise like running
+ */
 @Parcelize
 data class CardioExercise(
     var seconds: MutableList<Int> = mutableListOf(1),
@@ -122,6 +154,10 @@ data class CardioExercise(
     override var position: Int,
     override var exercise: Exercise
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
+
+/**
+ * holds specific info needed for a weight exercise like lifting dumbbells
+ */
 @Parcelize
 data class WeightExercise(
     var weights: MutableList<Double> = mutableListOf(1.0),
@@ -132,6 +168,9 @@ data class WeightExercise(
     override var exercise: Exercise
 ) : ExerciseHolder(sets = sets, exercise = exercise, position = position)
 
+/**
+ * holds all the information needed for a workout
+ */
 @Parcelize
 @Entity(tableName = "Workouts")
 data class Workout(
@@ -140,19 +179,29 @@ data class Workout(
     var name: String = "",
     var exercises: List<ExerciseHolder> = emptyList(),
     var numOfExercises: Int = exercises.size,
-    var position: Int = 0,
+    var position: Int = 0, // the position of a workout in a plan
 ) : Parcelable, Serializable {
+    /**
+     * query to filter workouts based on search string
+     */
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)
     }
 }
 
+/**
+ * saves the progress for the week
+ */
 @Entity
 data class Week(
     var totalNumOfWorkouts: Int = 0,
     var numOfWorkoutsDone: Int = 0,
 )
 
+/**
+ * saves the current plan the progress on the weeks of the plan and the starting date to the plan
+ * along with its name the number of weeks in the plan and the plan type
+ */
 @Entity(tableName = "plans")
 data class Plan(
     @PrimaryKey(autoGenerate = true)
@@ -164,12 +213,24 @@ data class Plan(
     var weeksList: List<Week> = emptyList(),
     var planType: PlanType
 ) {
+
+    /**
+     * method to filter plans by name
+     */
     fun doesMatchSearchQuery(query: String) : Boolean {
         return name.contains(query, ignoreCase = true)
     }
+
+    /**
+     * method to filter plans by more variables
+     */
     fun matchesFilter(minPerWeek: Int, maxPerWeek: Int, planType: PlanType) : Boolean {
         return workouts.size in minPerWeek..maxPerWeek && planType == this.planType
     }
+
+    /**
+     * method to start all weeks by the number of exercises per week
+     */
     fun startWeeks() {
         val n = workouts.size
         for(i: Int in 1..weeks) {
@@ -179,8 +240,17 @@ data class Plan(
         }
     }
 }
+
+/**
+ * holds a name of a workout/plan and the date its been completed
+ */
 data class HistoryItem(val name: String, val date: Date)
 
+/**
+ * holds the info about the user that is always saved
+ * the plan hes on, the plan and workout completed and their dates,
+ * and the username (not currently used)
+ */
 @Entity(tableName = "info")
 data class Info(
     @PrimaryKey(autoGenerate = true)

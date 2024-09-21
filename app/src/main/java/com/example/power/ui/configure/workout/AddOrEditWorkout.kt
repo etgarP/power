@@ -1,15 +1,11 @@
 package com.example.power.ui.configure.Plan.workout
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -26,7 +22,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Exercise
@@ -35,8 +30,13 @@ import com.example.power.data.viewmodels.workout.ExerciseHolderItem
 import com.example.power.data.viewmodels.workout.WorkoutDetails
 import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
+import com.example.power.ui.configure.components.RightHandNavButton
 import kotlinx.coroutines.launch
 
+/**
+ * editing a workout page
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun EditWorkout(
     modifier: Modifier = Modifier,
@@ -46,6 +46,7 @@ fun EditWorkout(
     onBack: () -> Unit,
     viewModel: WorkoutEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // loads the workouts details for the first time
     var firstTime by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(workoutName) {
         if (firstTime) {
@@ -71,6 +72,11 @@ fun EditWorkout(
     )
 }
 
+
+/**
+ * add a new workout page
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AddWorkout(
     modifier: Modifier = Modifier,
@@ -79,6 +85,7 @@ fun AddWorkout(
     getExercise: () -> Exercise?,
     viewModel: WorkoutEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    // retrieve an exercise that was added
     val addedExercise = getExercise()
     if (addedExercise != null) viewModel.addExerciseHolder(addedExercise)
     viewModel.updateUiState(viewModel.workoutUiState.workoutDetails)
@@ -97,7 +104,10 @@ fun AddWorkout(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * a page for adding a workout or editing or starting it
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun EditOrAddWorkout(
     modifier: Modifier = Modifier,
@@ -160,37 +170,10 @@ fun EditOrAddWorkout(
     }
 }
 
-
-
-@Composable
-fun RightHandNavButton(
-    onClick: () -> Unit,
-    valid: Boolean = true,
-    isActiveWorkout: Boolean = false
-) {
-    IconButton(onClick = {
-        if (valid)
-            onClick()
-    }) {
-        Icon(
-            imageVector = if (isActiveWorkout) Icons.Filled.Done else Icons.Filled.Save,
-            contentDescription = "Save/Update",
-            tint = if (valid) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.error
-        )
-    }
-}
-@Preview
-@Composable
-fun RightHandNavButtonPreview() {
-    AppTopBar(title = "title", backFunction = {  }) {
-        RightHandNavButton(onClick = {  })
-    }
-}
-
-
-
-
+/**
+ * and a drag and drop list of exercises and a place to write the name
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun WorkoutInputForm(
     workoutDetails: WorkoutDetails,
@@ -208,6 +191,7 @@ fun WorkoutInputForm(
         getMore = getMore,
         isActiveWorkout = isActiveWorkout,
         nameComposable = {
+            // name field
             if (!isActiveWorkout) {
                 Spacer(modifier = Modifier.padding(5.dp))
                 TextField(
@@ -219,29 +203,6 @@ fun WorkoutInputForm(
                     label = { Text(text = "Workout Name") }
                 )
             }
-//            if (isActiveWorkout) {
-//                val value =
-//                    if (workoutDetails.secsBreak == 0) ""
-//                    else workoutDetails.secsBreak.toString()
-//                Spacer(modifier = Modifier.padding(5.dp))
-//                TextField(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 10.dp),
-//                    value = value,
-//                    onValueChange = {
-//                        try {
-//                            val change = it.toInt()
-//                            val num = if (change >= 3600) 3599 else change
-//                            onValueChange(workoutDetails.copy(secsBreak = num))
-//                        } catch (e: Exception) {
-//                            onValueChange(workoutDetails.copy(secsBreak = 0))
-//                        }
-//                    },
-//                    label = { Text(text = "Break-time (seconds)") },
-//                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//                )
-//            }
             if (workoutDetails.name == "") {
                 Spacer(modifier = Modifier.padding(5.dp))
                 Text(

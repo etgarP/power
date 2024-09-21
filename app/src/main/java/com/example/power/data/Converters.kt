@@ -13,6 +13,9 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import java.util.Date
 
+/**
+ * converts objects to jsons and back to store on to store on the repository and retrieve
+ */
 class Converters {
 
     private val gson: Gson = GsonBuilder()

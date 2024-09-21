@@ -74,7 +74,7 @@ import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.LoadInitialDataViewModel
 import com.example.power.ui.History.History
 import com.example.power.ui.configure.Configure
-import com.example.power.ui.configure.Plan.ChoosePlan
+import com.example.power.ui.configure.Plan.ChooseWorkoutForPlan
 import com.example.power.ui.configure.Plan.exercise.AddExercise
 import com.example.power.ui.configure.Plan.exercise.EditExercise
 import com.example.power.ui.configure.Plan.workout.AddWorkout
@@ -306,7 +306,7 @@ fun AppNavHost(
             }
         ) {
             setSelectedItem(2)
-            ChoosePlan(
+            ChooseWorkoutForPlan(
                 onClick = { workout ->
                     navController.popBackStack()
                     navController.currentBackStackEntry

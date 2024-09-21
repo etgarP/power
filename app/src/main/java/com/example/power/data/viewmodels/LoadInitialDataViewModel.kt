@@ -16,12 +16,20 @@ import com.example.power.data.room.Plan
 import com.example.power.data.room.PlanType
 import kotlinx.coroutines.launch
 
+/**
+ * loading initial data to the app, should be used only the first time the app
+ * is opened
+ */
 class LoadInitialDataViewModel (
     private val exercisesRepository: ExercisesRepository,
     private val workoutRepository: WorkoutRepository,
     private val planRepository: PlanRepository,
     private val infoRepository: InfoRepository
 ): ViewModel() {
+    /**
+     * says if the app is ready to be opened, which is when the repository loaded
+     * (not used currently, can be used if loading time takes longer)
+     */
     var ready by mutableStateOf(false)
         private set
     init {
@@ -30,6 +38,7 @@ class LoadInitialDataViewModel (
                 if (it == null) {
                     viewModelScope.launch {
                         loadRepository()
+                        ready = true
                     }
                 } else {
                     ready = true
@@ -37,6 +46,10 @@ class LoadInitialDataViewModel (
             }
         }
     }
+
+    /**
+     * loads plans to the repository, with their exercises and workouts
+     */
     private fun loadRepository() {
         loadDumbbell3days()
         loadWomensDumbbellWorkout3Days()

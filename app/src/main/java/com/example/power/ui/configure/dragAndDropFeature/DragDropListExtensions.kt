@@ -1,4 +1,4 @@
-package com.example.power.ui
+package com.example.power.ui.configure.dragAndDropFeature
 
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState

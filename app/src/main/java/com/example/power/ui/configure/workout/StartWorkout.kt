@@ -1,6 +1,8 @@
 package com.example.power.ui.configure.workout
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -40,11 +42,16 @@ import com.example.power.data.viewmodels.InfoViewModel
 import com.example.power.data.viewmodels.workout.ExerciseHolderItem
 import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
-import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
+import com.example.power.ui.configure.Plan.exercise.CollapsedExercise
 import com.example.power.ui.configure.Plan.workout.EditOrAddWorkout
+import com.example.power.ui.configure.components.MyAlertDialog
 import kotlinx.coroutines.launch
 
+/**
+ * start ongoing workout that came from a workout and activates a function on complete
+ * that marks it as completed in the plan
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun OnGoingWorkoutFromPlan(
     modifier: Modifier = Modifier,
@@ -58,6 +65,7 @@ fun OnGoingWorkoutFromPlan(
     if (index == null) onBack()
     else
         OnGoingWorkout(
+            modifier = modifier,
             workoutName = workoutName,
             getMore = getMore,
             getExercise = getExercise,
@@ -67,6 +75,10 @@ fun OnGoingWorkoutFromPlan(
         }
 }
 
+/**
+ * an ongoing workout, has the ability to track and edit your workout while performing it
+ */
+@RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun OnGoingWorkout(
     modifier: Modifier = Modifier,
@@ -77,9 +89,11 @@ fun OnGoingWorkout(
     viewModel: WorkoutEntryViewModel = viewModel(factory = AppViewModelProvider.Factory),
     addToPlan: () -> Unit = {}
 ) {
+    // overwrite the default back navigation
     BackHandler {
         onBack()
     }
+    // loads the workout
     var firstTime by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(workoutName) {
         if (firstTime) {
@@ -88,8 +102,10 @@ fun OnGoingWorkout(
         }
         firstTime = false
     }
+    // gets added exercises
     val addedExercise = getExercise()
     if (addedExercise != null) viewModel.addExerciseHolder(addedExercise)
+    // in preview mode it only shows the preview of the workout (the starting position)
     AnimatedVisibility (
         viewModel.showPreview,
 
@@ -106,12 +122,14 @@ fun OnGoingWorkout(
             onBack = onBack
         )
     }
+    // out of preview mode
     AnimatedVisibility(
         !viewModel.showPreview,
         enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
             IntOffset(+180, 0)
         } + fadeIn(animationSpec = tween(220, delayMillis = 90)),
     ) {
+        // opens alert dialog to make sure user wanted to leave the app
         var openAlertDialog by remember { mutableStateOf(false) }
         when {
             openAlertDialog -> {
@@ -130,6 +148,7 @@ fun OnGoingWorkout(
         BackHandler {
             openAlertDialog = true
         }
+        // the workout with the ability to edit or perform it
         val corutine = rememberCoroutineScope()
         val infoViewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory)
         if (!viewModel.showPreview) {
@@ -159,6 +178,10 @@ fun OnGoingWorkout(
         }
     }
 }
+
+/**
+ * the preview page for the workout shows the exercises to be performed
+ */
 @Composable
 fun WorkoutPreviewPage(
     modifier: Modifier = Modifier,
@@ -178,16 +201,18 @@ fun WorkoutPreviewPage(
                 .padding(it),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
+            // the exercise to be performed
             LazyColumn (modifier = Modifier.weight(1f)) {
                 items(exercises, key = { it.exerciseHolder.position }) { exercise ->
                     bodyTypeMap[exercise.exerciseHolder.exercise.body]?.let {
-                        ExerciseHolder(
+                        CollapsedExercise(
                             exerciseName = exercise.exerciseHolder.exercise.name,
                             bodyPart = it
                         )
                     }
                 }
             }
+            // start workout button
             ExtendedFloatingActionButton(
                 onClick = { onStart() },
                 modifier = Modifier.padding(25.dp),

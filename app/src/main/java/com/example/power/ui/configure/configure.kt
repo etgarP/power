@@ -24,9 +24,9 @@ import com.example.power.ui.ExerciseScreens
 import com.example.power.ui.PlanScreens
 import com.example.power.ui.WorkoutScreens
 import com.example.power.ui.configure.Plan.Plans
-import com.example.power.ui.configure.Plan.exercise.AddBtn
 import com.example.power.ui.configure.Plan.exercise.Exercises
 import com.example.power.ui.configure.Plan.workout.Workouts
+import com.example.power.ui.configure.components.AddBtn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

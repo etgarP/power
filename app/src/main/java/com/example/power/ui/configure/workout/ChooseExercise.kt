@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,9 +27,9 @@ import com.example.power.data.room.exerciseTypeMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.exercise.ExerciseViewModel
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.SearchItem
+import com.example.power.ui.configure.Plan.exercise.CollapsedExercise
 import com.example.power.ui.configure.Plan.exercise.ExerciseFilterRow
-import com.example.power.ui.configure.Plan.exercise.ExerciseHolder
+import com.example.power.ui.configure.components.SearchItem
 import kotlinx.coroutines.launch
 
 @Preview
@@ -39,7 +38,9 @@ fun previewThis() {
     ChooseExercise(onClick = {}, onBack = {})
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * a page to choose an exercise to add to a workout
+ */
 @Composable
 fun ChooseExercise(
     modifier: Modifier = Modifier,
@@ -59,6 +60,9 @@ fun ChooseExercise(
     }
 }
 
+/**
+ * has a search bar and a chip filter row to choose an exercise
+ */
 @Composable
 fun ExercisePageForWorkout(
     modifier: Modifier = Modifier,
@@ -103,7 +107,7 @@ fun ExercisePageForWorkout(
                 val passesSearch = exercise.doesMatchSearchQuery(searchText)
                 AnimatedVisibility(visible = rightType && rightBody && passesSearch) {
                     if (bodyType != null && type != null) {
-                        ExerciseHolder(
+                        CollapsedExercise(
                             showMore = showDelete,
                             exerciseName = exercise.name,
                             bodyPart = bodyType,

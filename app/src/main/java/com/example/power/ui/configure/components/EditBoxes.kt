@@ -1,4 +1,4 @@
-package com.example.power.ui
+package com.example.power.ui.configure.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -31,6 +30,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 
+/**
+ * a modified text field to to be the baseline of a search bar
+ * able to have a leading icon and trailing icon,
+ * placeholder is the text and has a changeable font size
+ */
 @Composable
 fun GoodText(
     modifier: Modifier = Modifier,
@@ -82,6 +86,10 @@ fun GoodText(
     )
 }
 
+/**
+ * a search box field that takes the value and the set value
+ * has erase text function when the text isn't ""
+ */
 @Composable
 fun SearchItem(
     searchVal: String,
@@ -119,13 +127,10 @@ fun SearchItem(
     )
 }
 
-@Preview
-@Composable
-fun SearchPreview() {
-    SearchItem(searchVal = "", setVal = { string -> })
-}
 
-
+/**
+ * a simple small text field, rectangle shape with curved edges
+ */
 @Composable
 fun GoodTextField(
     modifier: Modifier = Modifier,
@@ -180,8 +185,22 @@ fun GoodTextField(
         }
     )
 }
+
+@Preview
+@Composable
+fun GoodTextFieldPreview() {
+    GoodTextField(value = "hello", onValueChange = {})
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewGoodTextField() {
     GoodTextField(value = "3", onValueChange = {})
+}
+
+
+@Preview
+@Composable
+fun SearchPreview() {
+    SearchItem(searchVal = "", setVal = { string -> })
 }

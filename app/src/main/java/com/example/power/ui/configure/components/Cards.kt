@@ -1,10 +1,6 @@
-package com.example.power.ui.configure
+package com.example.power.ui.configure.components
 
 import android.content.res.Configuration
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -21,13 +17,11 @@ import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,87 +37,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.example.power.R
-import java.text.SimpleDateFormat
+import com.example.power.ui.configure.formatDate
 import java.util.Date
 
-@RequiresApi(Build.VERSION_CODES.Q)
-fun performHapticFeedback(context: android.content.Context) {
-    val vibrator = ContextCompat.getSystemService(context, Vibrator::class.java)
-    if (vibrator?.hasVibrator() == true) {
-        // Use a lower amplitude for a lighter vibration
-        val amplitude = 40
-        val effect = VibrationEffect.createOneShot(10, VibrationEffect.EFFECT_DOUBLE_CLICK)
-        vibrator.vibrate(effect)
-    }
-}
-
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun ChoosePlanSection(modifier: Modifier = Modifier) {
-    Section(
-        modifier = modifier,
-        title = R.string.workouts_per_week
-    ) {
-        Column {
-
-            Spacer(modifier = Modifier.height(50.dp))
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun SelectPlanSection(modifier: Modifier = Modifier) {
-    Section(
-        modifier = modifier,
-        title = R.string.select_a_plan
-    ) {
-        Column {
-            PlanCard(title = "plan 1", numOfWeeks = 5, numOfDays = 3)
-            PlanCard(title = "plan 2", numOfWeeks = 12, numOfDays = 3)
-            PlanCard(title = "plan 3", numOfWeeks = 13, numOfDays = 3)
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun ChoosePlanBtn(modifier: Modifier = Modifier) {
-    ExtendedFloatingActionButton(
-        modifier = modifier,
-        onClick = { /*TODO*/ }
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Filled.Check, contentDescription = "choose this plan")
-            Text(text = "Confirm choice", modifier = Modifier.padding(horizontal = 10.dp))
-        }
-    }
-}
-
-@Composable
-fun WorkoutCardPreview(
-    modifier: Modifier = Modifier
-) {
-    TopExpandableTitleCard(title = "workout", content = {
-        Text(text = "3 X dumbbell deadlift")
-        Text(text = "3 X dumbbell deadlift")
-        Text(text = "3 X dumbbell deadlift")
-        Text(text = "3 X dumbbell deadlift")
-    }, isDragging = false)
-}
-
+/**
+ * an outlined card that can change a background in an animated fashion
+ * color based on input (useful for drag and drop)
+ */
 @Composable
 fun OutlinedCard(
     modifier: Modifier = Modifier,
     changeBackgroundColor: Boolean = false,
     padding: Boolean = true,
     mainContent: @Composable () -> Unit,
-    trailingContent: @Composable () -> Unit,
+    trailingContent: @Composable () -> Unit = {  },
 ) {
     val colorPressed = MaterialTheme.colorScheme.surfaceVariant
     val colorNotPressed = MaterialTheme.colorScheme.surface
@@ -149,18 +77,24 @@ fun OutlinedCard(
                 Column(modifier = Modifier
                     .weight(1f)
                 ) {
+                    // main area content for example title and text (takes most of the area)
                     mainContent()
                 }
+                // for example an icon on the side
                 trailingContent()
             }
         }
     }
 }
 
+/**
+ * a big title card with a button
+ */
 @Composable
 fun TopBigTitleCard(
     modifier: Modifier = Modifier,
     title: String,
+    btnText: String,
     isDragging: Boolean = false,
     onClick: () -> Unit = {},
     content: @Composable () -> Unit,
@@ -186,6 +120,7 @@ fun TopBigTitleCard(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
+                // the title goes here
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
@@ -199,26 +134,24 @@ fun TopBigTitleCard(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Column() {
+                    // the content goes here
                     content()
                 }
             }
+            // the btn goes here
             Button(
                 modifier = Modifier.padding(bottom = 10.dp),
                 onClick = onClick
             ) {
-                Text(text = "Choose This Plan")
+                Text(text = btnText)
             }
         }
     }
 }
 
-@Preview
-@Composable
-fun TopTitleCardPreview() {
-    TopExpandableTitleCard(title = "title") {
-        Text(text = "CONTENT")
-    }
-}
+/**
+ * title is at the tip, the card is expendable
+ */
 @Composable
 fun TopExpandableTitleCard(
     modifier: Modifier = Modifier,
@@ -243,11 +176,13 @@ fun TopExpandableTitleCard(
                 modifier = Modifier.padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // the title
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.weight(1f)
                 )
+                // btn to texpend
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = if (!expanded) Icons.Filled.ExpandMore
@@ -256,6 +191,7 @@ fun TopExpandableTitleCard(
                     )
                 }
             }
+            // the expended part
             Column(modifier = Modifier.animateContentSize()) {
                 if (expanded) {
                     HorizontalDivider()
@@ -268,6 +204,10 @@ fun TopExpandableTitleCard(
     }
 }
 
+/**
+ * a section area with an ability to put something stuck to the right of the title
+ * and content below the title
+ */
 @Composable
 fun Section(
     @StringRes title: Int,
@@ -288,37 +228,14 @@ fun Section(
             )
             tailContent()
         }
-
         content()
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)@Composable
-fun PlanCard(
-    modifier: Modifier = Modifier,
-    title: String = "Title",
-    numOfWeeks: Int = -1,
-    numOfDays: Int = -1
-) {
-    OutlinedCard(mainContent = {
-        Text(text = title, style = MaterialTheme.typography.titleLarge)
-        Text(text = "$numOfWeeks weeks", style = MaterialTheme.typography.bodyMedium)
-        Text(text = "$numOfDays days a week", style = MaterialTheme.typography.bodyMedium)
-    }) {
-        IconButton(onClick = { TODO() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "more info")
-        }
-    }
-}
 
-fun formatDate(date: Date): String {
-    // Create a date formatter with the desired format
-    val formatter = SimpleDateFormat("dd MMMM yyyy")
-
-    // Format the date as a string
-    return formatter.format(date)
-}
-
+/**
+ * shows the completed workout and its date of completion and has a button to go into that workouts
+ */
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)@Composable
 fun WorkoutHistoryCard(
     modifier: Modifier = Modifier,
@@ -336,6 +253,9 @@ fun WorkoutHistoryCard(
     }
 }
 
+/**
+ * shows the completed plan and its date of completion
+ */
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)@Composable
 fun PlanHistoryCard(
     modifier: Modifier = Modifier,
@@ -348,12 +268,40 @@ fun PlanHistoryCard(
     }) {}
 }
 
+// just a preview
+@Preview
+@Composable
+fun TopTitleCardPreview() {
+    TopExpandableTitleCard(title = "title") {
+        Text(text = "CONTENT")
+    }
+}
 
-
-
-
+// just preview
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun CardPreview() {
-    PlanCard(title = "test", numOfWeeks = 12, numOfDays = 3)
+fun ChoosePlanSection(modifier: Modifier = Modifier) {
+    Section(
+        modifier = modifier,
+        title = R.string.workouts_per_week
+    ) {
+        Column {
+
+            Spacer(modifier = Modifier.height(50.dp))
+        }
+    }
+}
+
+// just preview
+@Preview
+@Composable
+fun WorkoutCardPreview(
+    modifier: Modifier = Modifier
+) {
+    TopExpandableTitleCard(title = "workout", content = {
+        Text(text = "3 X dumbbell deadlift")
+        Text(text = "3 X dumbbell deadlift")
+        Text(text = "3 X dumbbell deadlift")
+        Text(text = "3 X dumbbell deadlift")
+    }, isDragging = false)
 }

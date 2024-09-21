@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,19 +22,21 @@ import com.example.power.data.room.Workout
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.workout.WorkoutViewModel
 import com.example.power.ui.AppTopBar
-import com.example.power.ui.SearchItem
-import com.example.power.ui.configure.Plan.workout.ExerciseComposable
+import com.example.power.ui.configure.Plan.workout.workoutComposable
+import com.example.power.ui.configure.components.SearchItem
 
 
 @Preview
 @Composable
 fun preview() {
-    ChoosePlan(onClick = {}, onBack = {})
+    ChooseWorkoutForPlan(onClick = {}, onBack = {})
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * a page to choose a workout for the plan
+ */
 @Composable
-fun ChoosePlan(
+fun ChooseWorkoutForPlan(
     modifier: Modifier = Modifier,
     onClick: (Workout?) -> Unit,
     onBack: () -> Unit
@@ -53,6 +54,9 @@ fun ChoosePlan(
     }
 }
 
+/**
+ * page to choose workout, on click returns
+ */
 @Composable
 fun WorkoutPageForPlan(
     modifier: Modifier = Modifier,
@@ -62,12 +66,14 @@ fun WorkoutPageForPlan(
     val searchText by workoutViewModel.searchText.collectAsState()
     val workouts by workoutViewModel.workouts.collectAsState()
     Column(modifier = modifier.fillMaxHeight()) {
+        // search
         SearchItem(searchVal = searchText, setVal = workoutViewModel::onSearchTextChange)
+        // the workouts
         LazyColumn() {
             items(workouts) { workout ->
                 val passesSearch = workout.doesMatchSearchQuery(searchText)
                 AnimatedVisibility(visible = passesSearch) {
-                    ExerciseComposable(
+                    workoutComposable(
                         exerciseName = workout.name,
                         numOfExercises = workout.numOfExercises,
                         onEdit = { },

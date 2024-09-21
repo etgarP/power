@@ -55,7 +55,7 @@ import com.example.power.data.room.Plan
 import com.example.power.data.room.Week
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.InfoViewModel
-import com.example.power.ui.configure.Plan.exercise.MyAlertDialog
+import com.example.power.ui.configure.components.MyAlertDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
