@@ -1,4 +1,4 @@
-package com.example.power.ui.configure.components
+package com.example.power.ui.components
 
 import android.content.res.Configuration
 import androidx.annotation.StringRes

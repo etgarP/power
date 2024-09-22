@@ -1,4 +1,4 @@
-package com.example.power.ui.configure.components
+package com.example.power.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -49,11 +49,11 @@ import com.example.power.data.room.RepsExercise
 import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.ui.PowerNotificationService
-import com.example.power.ui.configure.components.BottomSheetItem
-import com.example.power.ui.configure.components.GoodOutlinedButton
-import com.example.power.ui.configure.components.GoodTextField
-import com.example.power.ui.configure.components.OutlinedCard
-import com.example.power.ui.configure.components.dissmissSheet
+import com.example.power.ui.components.BottomSheetItem
+import com.example.power.ui.components.GoodOutlinedButton
+import com.example.power.ui.components.GoodTextField
+import com.example.power.ui.components.OutlinedCard
+import com.example.power.ui.components.dissmissSheet
 
 /**
  * holds a number for each category for a set

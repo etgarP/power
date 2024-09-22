@@ -1,4 +1,4 @@
-package com.example.power.ui.configure.components
+package com.example.power.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding

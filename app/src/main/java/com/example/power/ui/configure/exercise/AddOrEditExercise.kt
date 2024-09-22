@@ -19,8 +19,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.exercise.ExerciseDetails
 import com.example.power.data.viewmodels.exercise.ExerciseEntryViewModel
-import com.example.power.ui.AppTopBar
-import com.example.power.ui.configure.components.DropMenuOutlined
+import com.example.power.ui.components.AppTopBar
+import com.example.power.ui.components.DropMenuOutlined
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 

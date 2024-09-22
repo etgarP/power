@@ -29,63 +29,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.HistoryItem
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.InfoViewModel
-import com.example.power.ui.configure.components.PlanHistoryCard
-import com.example.power.ui.configure.components.WorkoutHistoryCard
+import com.example.power.ui.components.PlanHistoryCard
+import com.example.power.ui.components.WorkoutHistoryCard
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun History1(
-    modifier: Modifier = Modifier,
-    toWorkout: (String) -> Unit
-) {
-    val infoViewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory)
-    var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabTexts = listOf("Workouts", "Plans")
-    Scaffold {
-        Column(modifier = modifier
-            .fillMaxSize()
-            .padding(it)) {
-            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
-                tabTexts.forEachIndexed { index, text ->
-                    val color by animateColorAsState(
-                        targetValue =
-                        if (index == selectedTabIndex) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface,
-                        label = "tab row color"
-                    )
-                    Tab(
-                        selected = index == selectedTabIndex,
-                        onClick = { selectedTabIndex = index },
-                        text = {
-                            Text(
-                                text = text,
-                                color = color
-                            )
-                        }
-                    )
-                }
-            }
-            val plansCompleted = infoViewModel.infoUiState.planHistory
-            val workoutsCompleted = infoViewModel.infoUiState.workoutHistory
-            Spacer(modifier = Modifier.padding(5.dp))
-            AnimatedVisibility(
-                selectedTabIndex == 1,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                PlanHistory(plansCompleted)
-            }
-            AnimatedVisibility(
-                selectedTabIndex == 0,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                WorkoutHistory(workoutsCompleted, toWorkout)
-            }
-        }
-    }
-}
-
+/**
+ * a screen with two tabs:
+ * one for the workout history and one for plan history
+ * workout history lets you go into a workout as well
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun History(
@@ -96,7 +47,7 @@ fun History(
     var selectedTabIndex by remember{ mutableStateOf(0) }
     val tabTexts = listOf("Workouts", "Plans")
     Scaffold (
-        Modifier
+        modifier
     ) {
         Column(modifier = Modifier
             .fillMaxSize()
@@ -124,6 +75,7 @@ fun History(
             }
             val plansCompleted = infoViewModel.infoUiState.planHistory
             val workoutsCompleted = infoViewModel.infoUiState.workoutHistory
+            // workout history
             Spacer(modifier = Modifier.padding(5.dp))
             AnimatedVisibility(
                 selectedTabIndex == 0,
@@ -132,6 +84,7 @@ fun History(
             ) {
                 WorkoutHistory(completedList = workoutsCompleted, toWorkout)
             }
+            // plan history
             AnimatedVisibility(
                 selectedTabIndex == 1,
                 enter = fadeIn(),
@@ -144,6 +97,9 @@ fun History(
 
 }
 
+/**
+ * a list of all completed plans
+ */
 @Composable
 fun PlanHistory(
     completedList: List<HistoryItem>,
@@ -177,6 +133,10 @@ fun PlanHistory(
         }
     }
 }
+
+/**
+ * a list of all completed workouts with ability to start the workouts
+ */
 @Composable
 fun WorkoutHistory(
     completedList: List<HistoryItem>,

@@ -50,6 +50,7 @@ fun PowerTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    // making sure to use dark mode and light mode based on the phone theme
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

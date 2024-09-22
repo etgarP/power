@@ -1,8 +1,6 @@
 package com.example.power.ui.home
 
-import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,11 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.SpanStyle
@@ -55,13 +50,18 @@ import com.example.power.data.room.Plan
 import com.example.power.data.room.Week
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.InfoViewModel
-import com.example.power.ui.configure.components.MyAlertDialog
+import com.example.power.ui.components.FancyLongButton
+import com.example.power.ui.components.MyAlertDialog
+import com.example.power.ui.components.TraditionalButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
+/**
+ * returns how many weeks passed since an initial date
+ */
 fun weeksPassed(initialDate: Date): Int {
     val currentDate = Date()
     val millisecondsPassed = currentDate.time - initialDate.time
@@ -69,11 +69,21 @@ fun weeksPassed(initialDate: Date): Int {
     return daysPassed / 7
 }
 
+/**
+ * returns the place where the btns should be in
+ * they go right to the left and back like an arching road
+ */
 fun getAlignment(index: Int, direction: Boolean) : Double {
     return if (direction) index % 4 - 1.5
     else -(index % 4 - 1.5)
 }
 
+/**
+ * shows the progress of the current workout
+ * allows to get right in to the next workout for your plan right from the home screen
+ * splits the workouts by week and shows current week
+ * upon finished plan adds plan to history
+ */
 @Composable
 fun onGoingPlan(
     infoViewModel: InfoViewModel = viewModel(factory = AppViewModelProvider.Factory),
@@ -104,11 +114,12 @@ fun onGoingPlan(
         var direction = true
         var start = 0
         var lastWeek: Week = Week(1,1)
+        // goes over every week in the plan
         for ((index, week) in plan.weeksList.withIndex()) {
             Column (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned { coordinates ->
+                    .onGloballyPositioned { coordinates -> // scrolls to current week
                         if (index == weeksPassed(date))
                             scrollToPosition = coordinates.positionInRoot().y - 250
                     },
@@ -116,7 +127,8 @@ fun onGoingPlan(
             ) {
                 val weekNum = "Week ${index+1}"
                 val done = week.numOfWorkoutsDone == week.totalNumOfWorkouts
-                WeekTitle(weekNum, done, index, date)
+                // all completed weeks
+                WeekTitle(weekNum, index, date)
                 for(i in 0 until week.numOfWorkoutsDone) {
                     val position = getAlignment(start, direction)
                     if (position == 1.5 || position == -1.5 && start > 3) {
@@ -130,6 +142,7 @@ fun onGoingPlan(
                         alignment = position,
                     )
                 }
+                // the rest of the week
                 for(i in 0 until week.totalNumOfWorkouts - week.numOfWorkoutsDone) {
                     val position = getAlignment(start, direction)
                     if (position == 1.5 || position == -1.5 && start > 2)  {
@@ -139,6 +152,7 @@ fun onGoingPlan(
                     start++
                     val workoutName = workouts?.get(i+week.numOfWorkoutsDone)?.name
                     val lastWeekDone = lastWeek.numOfWorkoutsDone == lastWeek.totalNumOfWorkouts
+                    // the current week
                     if (i == 0 && (index == weeksPassed(date) || lastWeekDone)) {
                         alignedWorkout(
                             done = false,
@@ -150,7 +164,7 @@ fun onGoingPlan(
                             }
                         )
                     }
-                    else
+                    else // the next weeks
                         alignedWorkout(
                             done = false,
                             active = false,
@@ -173,6 +187,36 @@ fun onGoingPlan(
     }
 }
 
+/**
+ * the title of the screen
+ * also says if its the current week
+ */
+@Composable
+fun WeekTitle(weekNum: String, index: Int, date: Date) {
+    Surface (
+        modifier = Modifier.fillMaxWidth().padding(10.dp),
+    ) {
+        LinedText {
+            val status = if (index == weeksPassed(date)) " - This Week" else ""
+            Text(
+                fontSize = 20.sp,
+                text = buildAnnotatedString {
+                    append(weekNum)
+                    if (index == weeksPassed(date))
+                        // write " - this week" in brighter color
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurface)) {
+                            append(status)
+                        }
+                },
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+/**
+ * text with a line on both sides
+ */
 @Composable
 fun LinedText(content: @Composable () -> Unit) {
     Row (
@@ -197,29 +241,11 @@ fun LinedText(content: @Composable () -> Unit) {
     }
 }
 
-
-@Composable
-fun WeekTitle(weekNum: String, done: Boolean, index: Int, date: Date) {
-    Surface (
-        modifier = Modifier.fillMaxWidth().padding(10.dp),
-    ) {
-        LinedText {
-            val status = if (index == weeksPassed(date)) " - This Week" else ""
-            Text(
-                fontSize = 20.sp,
-                text = buildAnnotatedString {
-                    append(weekNum)
-                    if (index == weeksPassed(date))
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = MaterialTheme.colorScheme.onSurface)) {
-                            append(status)
-                        }
-                },
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
-    }
-}
-
+/**
+ * a button to switch a plan or finish a plan
+ * it depends on if the plan is finished or not
+ * starts an alert dialon on click
+ */
 @Composable
 fun SwitchPlan(finished: Boolean, deletePlan: () -> Unit, onComplete: () -> Unit) {
     Row(
@@ -255,10 +281,16 @@ fun SwitchPlan(finished: Boolean, deletePlan: () -> Unit, onComplete: () -> Unit
     }
 }
 
+/**
+ * makes a color a bit darder
+ */
 fun Color.darken(amount: Float): Color {
     return Color(red = red - amount, green = green - amount, blue = blue - amount, alpha = alpha)
 }
 
+/**
+ * puts the workout button in an aligned manner to look like a path going right and left
+ */
 @Composable
 fun alignedWorkout(
     modifier: Modifier = Modifier,
@@ -282,6 +314,12 @@ fun alignedWorkout(
     }
 }
 
+/**
+ * a button for workout
+ * clicked when the workout was done (dark blue), marked v
+ * unclicked and pressable when the workout wasnt done (light blue), marked start
+ * unclicked and grey when the, marked star
+ */
 @Preview(showBackground = true)
 @Composable
 fun todoWorkout(
@@ -296,7 +334,7 @@ fun todoWorkout(
         else MaterialTheme.colorScheme.primary, label = ""
     )
     Surface(modifier.padding(13.dp)) {
-        if (active && !done)
+        if (active && !done) // to do next
             Column {
                 if(clicked) Spacer(modifier = Modifier.padding(vertical = 2.5.dp))
                 TraditionalButton(
@@ -310,7 +348,7 @@ fun todoWorkout(
                 )
             }
         else {
-            if (done)
+            if (done) // done  workout
                 Button(
                     modifier = Modifier
                         .height(65.dp)
@@ -329,7 +367,7 @@ fun todoWorkout(
                         contentDescription = ""
                     )
                 }
-            else
+            else // not done or available
                 Button(
                     modifier = Modifier
                         .height(65.dp)
@@ -345,73 +383,6 @@ fun todoWorkout(
                         contentDescription = ""
                     )
                 }
-        }
-    }
-
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun TraditionalButton(
-    modifier: Modifier = Modifier,
-    clicked: Boolean,
-    color: Color,
-    click: () -> Unit,
-    unClick: () -> Unit,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    active: Boolean,
-) {
-    Surface (modifier) {
-        Button(
-            modifier = if (clicked) Modifier
-                .height(60.dp)
-                .width(85.dp)
-            else Modifier
-                .height(65.dp)
-                .width(85.dp),
-            onClick = {},
-            enabled = active,
-            shape = RoundedCornerShape(100),
-            border = BorderStroke( // Set button border
-                width = 7.dp,
-                color = MaterialTheme.colorScheme.primary.darken(0.1f)
-            ),
-        ) {
-            Icon(imageVector = Icons.Filled.Check, contentDescription = "")
-        }
-        val scope = rememberCoroutineScope()
-        Button(
-            modifier = Modifier
-                .height(60.dp)
-                .width(85.dp)
-                .pointerInteropFilter { motionEvent ->
-                    when (motionEvent.action) {
-                        MotionEvent.ACTION_DOWN -> {
-                            click()
-                            scope.launch {
-                                delay(1500)
-                                unClick()
-                            }
-                        }
-
-                        MotionEvent.ACTION_UP -> {
-                            unClick()
-                            onClick()
-                        }
-                    }
-                    true
-                },
-            shape = RoundedCornerShape(100),
-            colors = ButtonDefaults.buttonColors(containerColor = color),
-            onClick = onClick,
-            contentPadding = PaddingValues(0.dp),
-        ) {
-            Icon(
-                modifier = Modifier.size(40.dp),
-                imageVector = icon,
-                contentDescription = ""
-            )
         }
     }
 }

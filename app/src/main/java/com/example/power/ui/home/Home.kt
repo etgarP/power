@@ -14,7 +14,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,21 +23,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -48,9 +42,12 @@ import com.example.power.data.room.Plan
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.InfoViewModel
 import com.example.power.data.viewmodels.plan.PlanViewModel
-import com.example.power.ui.AppTopBar
+import com.example.power.ui.components.AppTopBar
+import com.example.power.ui.components.FancyCardWithButton
+import com.example.power.ui.components.FancyLongButton
+import com.example.power.ui.components.Section
 import com.example.power.ui.configure.Plan.WorkoutPageForPlan
-import com.example.power.ui.configure.components.Section
+import com.example.power.ui.home.QuickStartScreens.chooseFilteredPlanPage
 
 val enterSide: EnterTransition = slideIn(tween(100, easing = FastOutSlowInEasing)) {
     IntOffset(+180, 0)
@@ -66,6 +63,13 @@ val exit = slideOut(tween(100, easing = FastOutSlowInEasing)) {
 } + fadeOut(animationSpec = tween(delayMillis = 90))
 
 
+/**
+ * home page for the app.
+ * before choosing a plan:
+ * allows to start a workout, or choose a plan through quick start or through list.
+ * after choosing a plan:
+ * puts you in the the plan screen where you can select the next plan and see your progress.
+ */
 @Preview(showBackground = true)
 @Composable
 fun Home(
@@ -80,6 +84,7 @@ fun Home(
             selected == 2, enter = enter, exit = exit
         ) {
             val plan = infoViewModel.getCurrentPlan()
+            // if a plan was chosen puts you in the plan page
             if (plan != null)
                 Surface (){
                     onGoingPlan(deletePlan =
@@ -93,6 +98,7 @@ fun Home(
                     TopArea()
                 }
         }
+        // in no plan was choosen puts you in the no plan page
         AnimatedVisibility(
             selected == 1, enter = enter, exit = exit
         ) {
@@ -104,11 +110,7 @@ fun Home(
                 ) { infoViewModel.planSelected = 4 }
             }
         }
-        AnimatedVisibility(
-            selected == 5, enter = enterSide, exit = exitSide,
-        ) {
-
-        }
+        // if youre in quick select
         SwitchToQuickSelect(
             switch = selected == 5,
             onBack = { infoViewModel.planSelected = 1 },
@@ -117,6 +119,7 @@ fun Home(
                 infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
             }
         )
+        // in all plans screen
         SwitchToAllPlans(
             switch = selected == 3,
             onSelect = { selectedPlan ->
@@ -124,12 +127,16 @@ fun Home(
                 infoViewModel.updateInfo(infoViewModel.infoUiState.copy(currentPlan = selectedPlan))
             }
         ) { infoViewModel.planSelected = 1 }
+        // in all workouts screen
         SwitchToAllWorkouts(
             switch = infoViewModel.planSelected == 4, onClick = startWorkoutNoPlan
         ) { infoViewModel.planSelected = 1 }
     }
 }
 
+/**
+ * displays the logo at the top
+ */
 @Composable
 fun TopArea() {
     Column {
@@ -154,11 +161,13 @@ fun TopArea() {
                 contentDescription = "power logo"
             )
         }
-//        Divider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 
 }
 
+/**
+ * if you havent picked a plan yet it shows you the plan selection area and the workout section
+ */
 @Preview(showBackground = true)
 @Composable
 fun NotYetChosen(
@@ -179,6 +188,28 @@ fun NotYetChosen(
     }
 }
 
+/**
+ * lets you pick a workout from all workouts
+ */
+@Composable
+fun WorkoutSection(allWorkouts: () -> Unit) {
+    Section(
+        title = R.string.workouts,
+        style = MaterialTheme.typography.titleLarge
+    ) {
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ){
+            FancyLongButton(text = "All Workouts", onClick = allWorkouts)
+        }
+    }
+}
+
+/**
+ * the plan selection area. for the not selected plan page.
+ * has a quick start butoon to find a plan and a button to access all plans
+ */
 @Composable
 fun PlansSection(
     moveToQuickStart: () -> Unit,
@@ -195,7 +226,8 @@ fun PlansSection(
             FancyCardWithButton(
                 title = "Quick Start",
                 description = "Based on your preferences",
-                onClick = moveToQuickStart
+                onClick = moveToQuickStart,
+                btnText = "Start"
             )
             Spacer(modifier = Modifier.padding(5.dp))
             FancyLongButton(text = "All Plans", onClick = allPlans)
@@ -203,6 +235,9 @@ fun PlansSection(
     }
 }
 
+/**
+ * opens a screen that lets you choose from all workouts
+ */
 @Composable
 fun SwitchToAllWorkouts(
     modifier: Modifier = Modifier,
@@ -231,6 +266,9 @@ fun SwitchToAllWorkouts(
 }
 
 
+/**
+ * opens a screen with all plans
+ */
 @Composable
 fun SwitchToAllPlans(
     switch: Boolean,
@@ -243,7 +281,7 @@ fun SwitchToAllPlans(
         val viewModel: PlanViewModel = viewModel(factory = AppViewModelProvider.Factory)
         val plans by viewModel.plans.collectAsState()
         Column {
-            chooseFilteredPlan(filterPlans = false, plans = plans, onSelect = onSelect)
+            chooseFilteredPlanPage(filterPlans = false, plans = plans, onSelect = onSelect)
         }
         BackHandler {
             onBack()
@@ -251,6 +289,9 @@ fun SwitchToAllPlans(
     }
 }
 
+/**
+ * quick select start screen
+ */
 @Composable
 fun SwitchToQuickSelect(
     switch: Boolean,
@@ -264,93 +305,6 @@ fun SwitchToQuickSelect(
             onBack = onBack,
             onSelect = onSelect
         )
-    }
-}
-
-@Composable
-fun WorkoutSection(allWorkouts: () -> Unit) {
-    Section(
-        title = R.string.workouts,
-        style = MaterialTheme.typography.titleLarge
-    ) {
-        Column (
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
-        ){
-//            FancyCardWithButton(
-//                title = "Start Moving",
-//                description = "Your Custom Workouts",
-//                onClick = {},
-//            )
-//            Spacer(modifier = Modifier.padding(5.dp))
-            FancyLongButton(text = "All Workouts", onClick = allWorkouts)
-        }
-    }
-}
-@Preview
-@Composable
-fun FancyLongButton (
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    text: String = "example text",
-    warning: Boolean = false
-) {
-    Button(
-        onClick = { onClick() },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 5.dp),
-        shape = RoundedCornerShape(9.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (warning) MaterialTheme.colorScheme.error
-            else MaterialTheme.colorScheme.primary
-        )
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-fun FancyCardWithButton(
-    modifier: Modifier = Modifier,
-    title: String,
-    description: String,
-    onClick: () -> Unit,
-) {
-    Surface(
-        shadowElevation = 5.dp,
-        shape = RoundedCornerShape(9.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                )
-        ) {
-            Column (
-                modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(text = description)
-                Spacer(modifier = Modifier.padding(5.dp))
-
-                Button(onClick = { onClick() }) {
-                    Text(text = "Start")
-                }
-            }
-        }
-
     }
 }
 

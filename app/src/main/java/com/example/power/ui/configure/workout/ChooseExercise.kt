@@ -26,10 +26,10 @@ import com.example.power.data.room.bodyTypeMap
 import com.example.power.data.room.exerciseTypeMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.exercise.ExerciseViewModel
-import com.example.power.ui.AppTopBar
+import com.example.power.ui.components.AppTopBar
 import com.example.power.ui.configure.Plan.exercise.CollapsedExercise
 import com.example.power.ui.configure.Plan.exercise.ExerciseFilterRow
-import com.example.power.ui.configure.components.SearchItem
+import com.example.power.ui.components.SearchItem
 import kotlinx.coroutines.launch
 
 @Preview

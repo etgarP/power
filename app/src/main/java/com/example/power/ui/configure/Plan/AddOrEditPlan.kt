@@ -36,12 +36,12 @@ import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.plan.PlanDetails
 import com.example.power.data.viewmodels.plan.PlanEntryViewModel
 import com.example.power.data.viewmodels.plan.WorkoutItem
-import com.example.power.ui.AppTopBar
-import com.example.power.ui.configure.components.RightHandNavButton
-import com.example.power.ui.configure.components.DropMenu
-import com.example.power.ui.configure.components.Section
-import com.example.power.ui.configure.components.SwipeableDragAndDropList
-import com.example.power.ui.configure.components.TopExpandableTitleCard
+import com.example.power.ui.components.AppTopBar
+import com.example.power.ui.components.RightHandNavButton
+import com.example.power.ui.components.DropMenu
+import com.example.power.ui.components.Section
+import com.example.power.ui.components.SwipeableDragAndDropList
+import com.example.power.ui.components.TopExpandableTitleCard
 import kotlinx.coroutines.launch
 import kotlin.reflect.KSuspendFunction0
 

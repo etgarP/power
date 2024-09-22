@@ -20,6 +20,7 @@ class MainActivity : ComponentActivity() {
             "Power",
             NotificationManager.IMPORTANCE_HIGH
         )
+        // set up notifications
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(notificationChannel)
         setContent {

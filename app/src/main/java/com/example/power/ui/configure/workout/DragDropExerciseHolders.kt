@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.example.power.R
 import com.example.power.data.viewmodels.workout.ExerciseHolderItem
 import com.example.power.data.viewmodels.workout.WorkoutDetails
-import com.example.power.ui.configure.components.DragAndDropList
-import com.example.power.ui.configure.components.Section
+import com.example.power.ui.components.DragAndDropList
+import com.example.power.ui.components.Section
 import com.example.power.ui.configure.workout.ExerciseHolderComposable
 import kotlinx.coroutines.delay
 

@@ -1,4 +1,4 @@
-package com.example.power.ui.configure.components
+package com.example.power.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background

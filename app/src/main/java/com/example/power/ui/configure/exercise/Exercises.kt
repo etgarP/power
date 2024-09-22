@@ -31,10 +31,10 @@ import com.example.power.data.room.bodyTypeMap
 import com.example.power.data.room.exerciseTypeMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.exercise.ExerciseViewModel
-import com.example.power.ui.configure.components.BottomSheetEditAndDelete
-import com.example.power.ui.configure.components.CollapsedInfo
-import com.example.power.ui.configure.components.MyAlertDialog
-import com.example.power.ui.configure.components.SearchItem
+import com.example.power.ui.components.BottomSheetEditAndDelete
+import com.example.power.ui.components.CollapsedInfo
+import com.example.power.ui.components.MyAlertDialog
+import com.example.power.ui.components.SearchItem
 import kotlinx.coroutines.launch
 
 /**

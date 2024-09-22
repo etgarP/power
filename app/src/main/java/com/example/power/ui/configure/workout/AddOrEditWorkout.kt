@@ -29,8 +29,8 @@ import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.workout.ExerciseHolderItem
 import com.example.power.data.viewmodels.workout.WorkoutDetails
 import com.example.power.data.viewmodels.workout.WorkoutEntryViewModel
-import com.example.power.ui.AppTopBar
-import com.example.power.ui.configure.components.RightHandNavButton
+import com.example.power.ui.components.AppTopBar
+import com.example.power.ui.components.RightHandNavButton
 import kotlinx.coroutines.launch
 
 /**

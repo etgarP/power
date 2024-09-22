@@ -21,9 +21,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.room.Workout
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.workout.WorkoutViewModel
-import com.example.power.ui.AppTopBar
+import com.example.power.ui.components.AppTopBar
 import com.example.power.ui.configure.Plan.workout.workoutComposable
-import com.example.power.ui.configure.components.SearchItem
+import com.example.power.ui.components.SearchItem
 
 
 @Preview

@@ -31,10 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.workout.WorkoutViewModel
-import com.example.power.ui.configure.components.BottomSheetEditAndDelete
-import com.example.power.ui.configure.components.CollapsedInfo
-import com.example.power.ui.configure.components.MyAlertDialog
-import com.example.power.ui.configure.components.SearchItem
+import com.example.power.ui.components.BottomSheetEditAndDelete
+import com.example.power.ui.components.CollapsedInfo
+import com.example.power.ui.components.MyAlertDialog
+import com.example.power.ui.components.SearchItem
 import kotlinx.coroutines.launch
 
 /**

@@ -16,34 +16,12 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.TipsAndUpdates
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,27 +30,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.power.data.room.Exercise
 import com.example.power.data.room.Workout
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.LoadInitialDataViewModel
 import com.example.power.ui.History.History
+import com.example.power.ui.components.BottomNavBar
 import com.example.power.ui.configure.Configure
 import com.example.power.ui.configure.Plan.ChooseWorkoutForPlan
 import com.example.power.ui.configure.Plan.exercise.AddExercise
@@ -90,17 +63,21 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 
+/**
+ * the main screen of the app.
+ * holds the scaffold with the bottom bar and the navigation host
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf(0) }
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
     var inWorkout by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
+            // animation between main screens
             AnimatedVisibility(
                 visible = !inWorkout,
                 enter = slideIn(tween(100, easing = FastOutSlowInEasing)) {
@@ -110,7 +87,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     IntOffset(0, +180)
                 }
             ) {
-                NavBar(
+                // botton navigation bar between home history and configure
+                BottomNavBar(
                     onClick = { inputRoute ->
                         navController.navigate(inputRoute) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -126,6 +104,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
         },
     ) { paddingValues ->
+        // the navigation host
         AppNavHost(
             paddingValues = paddingValues,
             navController = navController,
@@ -136,6 +115,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * nav host that controls the screen and moving between the, along with the animations
+ * and logic needed to move between one another
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
 @Composable
 fun AppNavHost(
@@ -153,10 +136,10 @@ fun AppNavHost(
          */
         composable(Screens.Home.route) {
             setSelectedItem(0)
-            Home (startWorkoutNoPlan = { workoutName ->
+            Home (startWorkoutNoPlan = { workoutName -> // can start a workout (not from a plan)
                     navController.navigate("${WorkoutScreens.StartItem.route}/$workoutName")
                     setInWorkout(true)
-            }) { workoutName: String, index: String ->
+            }) { workoutName: String, index: String -> // can start a workout from a plan
                 navController.navigate("${WorkoutScreens.StartPlanItem.route}/$workoutName/$index")
                 setInWorkout(true)
             }
@@ -227,8 +210,7 @@ fun AppNavHost(
         /**
          * plan screens
          */
-
-        composable(
+        composable( // for adding a new plan
             PlanScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -256,7 +238,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for editing a plan
             route = PlanScreens.EditItem.routeWithArgs,
             arguments = PlanScreens.EditItem.arguments,
             enterTransition = {
@@ -288,7 +270,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for adding a workout to a plan
             PlanScreens.ChooseWorkout.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -320,7 +302,7 @@ fun AppNavHost(
         /**
          * workout screens
          */
-        composable(
+        composable( // for adding a new workout
             WorkoutScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -348,7 +330,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for editing a workout
             route = WorkoutScreens.EditItem.routeWithArgs,
             arguments = WorkoutScreens.EditItem.arguments,
             enterTransition = {
@@ -380,7 +362,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for an active workout
             route = WorkoutScreens.StartItem.routeWithArgs,
             arguments = WorkoutScreens.StartItem.arguments,
             enterTransition = {
@@ -414,7 +396,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for an active workout that started as a plan
             route = WorkoutScreens.StartPlanItem.routeWithArgs,
             arguments = WorkoutScreens.StartPlanItem.arguments,
             enterTransition = {
@@ -450,7 +432,7 @@ fun AppNavHost(
                 }
             )
         }
-        composable(
+        composable( // for adding an exercise for a workout
             WorkoutScreens.ChooseExercise.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -482,7 +464,7 @@ fun AppNavHost(
         /**
          * Exercise screens
          */
-        composable(
+        composable( // for adding a new exercise
             ExerciseScreens.AddItem.route,
             enterTransition = {
                 when (initialState.destination.route) {
@@ -529,6 +511,7 @@ enum class Direction {
     OUTWARDS
 }
 
+// scan in and out animation to make using them shorter and easier
 fun scaleIntoContainer(
     direction: Direction = Direction.INWARDS,
     initialScale: Float = if (direction == Direction.OUTWARDS) 0.9f else 1.1f
@@ -551,52 +534,6 @@ fun scaleOutOfContainer(
     ) + fadeOut(tween(delayMillis = 90))
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppTopBar(
-    enableBack: Boolean = false,
-    title: String,
-    backFunction: () -> Unit,
-    endIcon: @Composable () -> Unit = {}
-) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    Column {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            navigationIcon = {
-                if (enableBack)
-                    IconButton(onClick = { backFunction() }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
-                    }
-            },
-            actions = {
-                endIcon()
-            },
-            scrollBehavior = scrollBehavior,
-        )
-        Divider()
-    }
-
-}
-
-@Composable
-fun MyToolTip(
-    onClick: () -> Unit,
-) {
-    IconButton(onClick = { onClick() }) {
-        Icon(imageVector = Icons.Filled.TipsAndUpdates, contentDescription = "tip")
-    }
-}
-
 data class navBarItem (
     val label: String,
     val selectedIcon: ImageVector,
@@ -604,75 +541,12 @@ data class navBarItem (
     val route: String
 )
 
-@Composable
-fun NavBar(
-    modifier: Modifier = Modifier,
-    onClick: (String) -> Unit,
-    selectedItem: Int,
-    setSelectedItem: (Int) -> Unit,
-) {
-    val navBarItems = listOf(
-        navBarItem(
-            label = "Home",
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home,
-            Screens.Home.route
-        ),
-        navBarItem(
-            label = "History",
-            selectedIcon = Icons.Filled.History,
-            unselectedIcon = Icons.Outlined.History,
-            Screens.History.route
-        ),
-        navBarItem(
-            label = "Configure",
-            selectedIcon = Icons.Filled.Tune,
-            unselectedIcon = Icons.Outlined.Tune,
-            Screens.Configure.route
-        ),
-    )
-    NavigationBar(modifier) {
-        navBarItems.forEachIndexed { index, item ->
-            NavigationBarItem(
-                colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.primaryContainer),
-                icon = {
-                    if (index == selectedItem)
-                        Icon(imageVector = item.selectedIcon, contentDescription = item.label)
-                    else
-                        Icon(imageVector = item.unselectedIcon, contentDescription = item.label)
-                },
-                label = { Text(item.label) },
-                selected = selectedItem == index,
-                onClick = {
-                    setSelectedItem(index)
-                    onClick(item.route)
-                },
-            )
-        }
-    }
-}
-
-@Composable
-fun loadAnimation(
-    modifier: Modifier = Modifier,
-    circleSize: Dp = 25.dp,
-    circleColor: Color = MaterialTheme.colorScheme.primary,
-    spaceBetween: Dp = 10.dp,
-    travelDistance: Dp = 20.dp
-) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Initial loading...")
-    }
-}
-
 @OptIn(ExperimentalPermissionsApi::class)
 @RequiresApi(Build.VERSION_CODES.Q)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
+    // asking permission to send notifications
     val postNotificationPermission=
         rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
     LaunchedEffect(key1 = true ){
@@ -680,6 +554,7 @@ fun MyApp(modifier: Modifier = Modifier) {
             postNotificationPermission.launchPermissionRequest()
         }
     }
+    // loading the initial data to the app (only at the first lunch)
     val loadInitialDataViewModel: LoadInitialDataViewModel = viewModel(factory = AppViewModelProvider.Factory)
     PowerTheme {
         Surface(modifier) {

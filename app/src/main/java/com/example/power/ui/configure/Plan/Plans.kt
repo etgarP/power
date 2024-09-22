@@ -30,10 +30,10 @@ import com.example.power.data.room.PlanType
 import com.example.power.data.room.planTypeToStringMap
 import com.example.power.data.viewmodels.AppViewModelProvider
 import com.example.power.data.viewmodels.plan.PlanViewModel
-import com.example.power.ui.configure.components.BottomSheetEditAndDelete
-import com.example.power.ui.configure.components.CollapsedInfo
-import com.example.power.ui.configure.components.MyAlertDialog
-import com.example.power.ui.configure.components.SearchItem
+import com.example.power.ui.components.BottomSheetEditAndDelete
+import com.example.power.ui.components.CollapsedInfo
+import com.example.power.ui.components.MyAlertDialog
+import com.example.power.ui.components.SearchItem
 
 /**
  * the page to show all the plans
