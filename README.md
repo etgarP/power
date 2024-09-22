@@ -58,10 +58,13 @@ I aimed to create an app that not only helps users stay on track with their fitn
 
 ### Screenshots
 
+![Screenshot 2024-09-22 212910](https://github.com/user-attachments/assets/5b1a39a1-3900-41ae-a0d6-2ba9a216cea7)
+![Screenshot 2024-09-22 212938](https://github.com/user-attachments/assets/a4b7fba5-8f32-4ede-814b-eba27980db63)
+![Screenshot 2024-09-22 212956](https://github.com/user-attachments/assets/3e48148c-7b74-487a-bb30-7c20b18a2231)
+![Screenshot 2024-09-22 213018](https://github.com/user-attachments/assets/227e9fe2-d950-40e6-bf56-93c7ab76d94d)
+![Screenshot 2024-09-22 213037](https://github.com/user-attachments/assets/a6373643-63be-4552-ac5f-d7159cc4cb58)
+![Screenshot 2024-09-22 213055](https://github.com/user-attachments/assets/23b72213-2aa2-4238-bd48-c4712ffd1639)
 ![Screenshot 2024-09-22 213126](https://github.com/user-attachments/assets/1976cfb0-d9f8-4771-aef6-a9ee93d7c748)
 ![Screenshot 2024-09-22 213055](https://github.com/user-attachments/assets/23b72213-2aa2-4238-bd48-c4712ffd1639)
 ![Screenshot 2024-09-22 213037](https://github.com/user-attachments/assets/a6373643-63be-4552-ac5f-d7159cc4cb58)
 ![Screenshot 2024-09-22 213018](https://github.com/user-attachments/assets/227e9fe2-d950-40e6-bf56-93c7ab76d94d)
-![Screenshot 2024-09-22 212956](https://github.com/user-attachments/assets/3e48148c-7b74-487a-bb30-7c20b18a2231)
-![Screenshot 2024-09-22 212938](https://github.com/user-attachments/assets/a4b7fba5-8f32-4ede-814b-eba27980db63)
-![Screenshot 2024-09-22 212910](https://github.com/user-attachments/assets/5b1a39a1-3900-41ae-a0d6-2ba9a216cea7)
