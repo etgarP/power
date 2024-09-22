@@ -1,4 +1,4 @@
-# Power App (Workout planner and tracking)
+# Power App (Workout planner and tracker)
 
 An Android app designed with simplicity and functionality in mind, built using Kotlin and Room as the database solution. This app allows users to manage and track their workout plans seamlessly, with a clean and intuitive interface that adheres to Google’s Material Design guidelines.
 
