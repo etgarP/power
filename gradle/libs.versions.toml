@@ -18,6 +18,7 @@ navigationCompose = "2.10.2"
 roomKtx = "2.8.5"
 roomRuntime = "2.8.5"
 kotlin = "2.4.21"
+roomCompiler = "2.8.5"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -48,8 +49,10 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlinBom" }
 
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 [plugins]
 org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.10" }
 
 [bundles]

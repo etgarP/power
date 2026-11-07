@@ -1,7 +1,9 @@
 package com.example.power.data
 
 import androidx.room.TypeConverter
+import com.example.power.data.room.BodyType
 import com.example.power.data.room.ExerciseHolder
+import com.example.power.data.room.ExerciseType
 import com.example.power.data.room.HistoryItem
 import com.example.power.data.room.Plan
 import com.example.power.data.room.PlanType
@@ -11,6 +13,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
+import java.util.Collections.emptyList
 import java.util.Date
 
 /**
@@ -40,12 +43,12 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromJson(json: String?): List<HistoryItem>? {
+    fun fromJson(json: String?): MutableList<HistoryItem>? {
         if (json == null) {
             return emptyList()
         }
         val type = object : TypeToken<List<HistoryItem>>() {}.type
-        return Gson().fromJson(json, type)
+        return Gson().fromJson(json, object : TypeToken<MutableList<HistoryItem>>() {}.type)
     }
 
     @TypeConverter
@@ -118,4 +121,17 @@ class Converters {
         return PlanType.valueOf(planTypeString)
     }
 
+    @TypeConverter
+    fun fromExerciseType(value: ExerciseType): String = value.name
+
+    @TypeConverter
+    fun toExerciseType(value: String): ExerciseType =
+        ExerciseType.valueOf(value)
+
+    @TypeConverter
+    fun fromBodyType(value: BodyType): String = value.name
+
+    @TypeConverter
+    fun toBodyType(value: String): BodyType =
+        BodyType.valueOf(value)
 }
