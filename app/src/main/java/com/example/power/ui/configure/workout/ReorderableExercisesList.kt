@@ -55,36 +55,57 @@ import com.example.power.ui.components.GoodTextField
 import com.example.power.ui.components.OutlinedCard
 import com.example.power.ui.components.dissmissSheet
 
-/**
- * holds a number for each category for a set
- */
-data class Set (
-    val first : Int,
-    val second : Int
-)
 
 /**
- * return a set list from one or two lists or numbers
+ * Can be either int or double MutableList
  */
-fun setToList(list1: List<Int>, list2: List<Int>?) : List<Set> {
-    val list : MutableList<Set> = mutableListOf()
-    for (i in list1.indices) {
-        val set = list2?.let { Set(list1.elementAt(i), it.elementAt(i)) }
-        if (set != null)
-            list.add(set)
-        else
-            list.add(Set(list1.elementAt(i), 0))
+sealed class DataList {
+    abstract fun size(): Int
+    abstract fun getValue(index: Int): String
+    abstract fun setValue(index: Int, value: String)
+    abstract fun addSet()
+    abstract fun removeSet(index: Int)
+
+    data class IntList(
+        val values: MutableList<Int>
+    ) : DataList() {
+        override fun size() = values.size
+
+        override fun getValue(index: Int) = values[index].toString()
+
+        override fun setValue(index: Int, value: String) {
+            values[index] = value.toIntOrNull() ?: 0
+        }
+
+        override fun addSet() {
+            values.add(values.last())
+        }
+
+        override fun removeSet(index: Int) {
+            values.removeAt(index)
+        }
     }
-    return list
-}
 
-/**
- * holds a number for each category for a weight set
- */
-data class SetWight (
-    val first : Double,
-    val second : Int
-)
+    data class DoubleList(
+        val values: MutableList<Double>
+    ) : DataList() {
+        override fun size() = values.size
+
+        override fun getValue(index: Int) = values[index].toString()
+
+        override fun setValue(index: Int, value: String) {
+            values[index] = value.toDoubleOrNull() ?: 0.0
+        }
+
+        override fun addSet() {
+            values.add(values.last())
+        }
+
+        override fun removeSet(index: Int) {
+            values.removeAt(index)
+        }
+    }
+}
 
 /**
  * creates a different exercise composable with all of the info for different types of exercises
@@ -101,40 +122,23 @@ fun ExerciseHolderComposable(
     breakSet: Int,
     whenBreakChange: (String) -> Unit
 ) {
-    // the num of sets
     var setsNum by remember { mutableIntStateOf(exerciseHolder.sets) }
-    // saves how long the break is
     var breakTime by remember { mutableStateOf("$breakSet") }
-    // makes sure the break time is at most 3599 seconds
+
     val onBreakChange: (String) -> Unit = {
         breakTime = it.toIntOrNull()?.coerceAtMost(3599)?.toString() ?: ""
         whenBreakChange(it)
     }
-    // when a set is added updates it
-    fun onAddSet(list: MutableList<Int>) {
-        list.add(list.last())
-        setsNum++
-        exerciseHolder.sets = setsNum
-        setExerciseHolder(exerciseHolder)
-    }
-    // when a set is removed updates it
-    fun onRemoveSet(list: MutableList<Int>, index: Int) {
-        if (setsNum == 1) onDismiss() else {
-            list.removeAt(index)
-            setsNum--
-            exerciseHolder.sets = setsNum
-            setExerciseHolder(exerciseHolder)
-        }
-    }
-    // a composable function to simplify the different exercise composables generation
+
     @Composable
     fun GeneralExercise(
-        firstCategory: MutableList<Int>,
-        secondCategory: MutableList<Int>? = null,
+        firstCategory: DataList,
+        secondCategory: DataList? = null,
         firstCategoryName: String,
         secondCategoryName: String? = null
     ) {
-        var setList by remember { mutableStateOf(setToList(firstCategory, secondCategory)) }
+        // Forces the UI to refresh after modifying the underlying mutable lists.
+        var refresh by remember { mutableIntStateOf(0) }
 
         GeneralExerciseComposable(
             modifier = modifier,
@@ -146,46 +150,78 @@ fun ExerciseHolderComposable(
             isSecondCategory = secondCategory != null,
             firstCategoryName = firstCategoryName,
             secondCategoryName = secondCategoryName ?: "",
-            sets = setList,
-            // updates the first categories value
-            atFirstCategoryChange = { index, string ->
-                firstCategory[index] = string.toIntOrNull() ?: 0
-                setList = setToList(firstCategory, secondCategory)
+            firstCategory = firstCategory,
+            secondCategory = secondCategory,
+            refreshKey = refresh,
+
+            atFirstCategoryChange = { index, value ->
+                firstCategory.setValue(index, value)
+                refresh++
                 setExerciseHolder(exerciseHolder)
             },
-            // updates the second category
-            atSecondCategoryChange = { index, string ->
-                secondCategory?.let {
-                    it[index] = string.toIntOrNull() ?: 0
-                    setList = setToList(firstCategory, secondCategory)
+
+            atSecondCategoryChange = { index, value ->
+                secondCategory?.setValue(index, value)
+                refresh++
+                setExerciseHolder(exerciseHolder)
+            },
+
+            atAddSet = {
+                firstCategory.addSet()
+                secondCategory?.addSet()
+
+                setsNum++
+                exerciseHolder.sets = setsNum
+
+                refresh++
+                setExerciseHolder(exerciseHolder)
+            },
+
+            removeSetFromIndex = { index ->
+                if (setsNum == 1) {
+                    onDismiss()
+                } else {
+                    firstCategory.removeSet(index)
+                    secondCategory?.removeSet(index)
+
+                    setsNum--
+                    exerciseHolder.sets = setsNum
+
+                    refresh++
                     setExerciseHolder(exerciseHolder)
                 }
             },
-            // when a set is added
-            atAddSet = {
-                onAddSet(firstCategory)
-                secondCategory?.let { onAddSet(it) }
-                setList = setToList(firstCategory, secondCategory)
-            },
-            // removes a set
-            removeSetFromIndex = { index ->
-                onRemoveSet(firstCategory, index)
-                secondCategory?.let { onRemoveSet(it, index) }
-                setList = setToList(firstCategory, secondCategory)
-            },
+
             reorderable = reorderable,
             breakTime = breakTime,
             onBreakChange = onBreakChange
         )
     }
 
-
     when (exerciseHolder) {
-        is TimeExercise -> GeneralExercise(exerciseHolder.seconds, null, "Secs")
-        is RepsExercise -> GeneralExercise(exerciseHolder.reps, null, "Reps")
-        is CardioExercise -> GeneralExercise(exerciseHolder.km, null, "Km")
-        is WeightExercise -> GeneralExercise(exerciseHolder.weights.map { it.toInt() }.toMutableList(), exerciseHolder.reps, "Weight", "Reps")
+        is TimeExercise -> GeneralExercise(
+            firstCategory = DataList.IntList(exerciseHolder.seconds),
+            firstCategoryName = "Secs"
+        )
+
+        is RepsExercise -> GeneralExercise(
+            firstCategory = DataList.IntList(exerciseHolder.reps),
+            firstCategoryName = "Reps"
+        )
+
+        is CardioExercise -> GeneralExercise(
+            firstCategory = DataList.IntList(exerciseHolder.km),
+            firstCategoryName = "Km"
+        )
+
+        is WeightExercise -> GeneralExercise(
+            firstCategory = DataList.DoubleList(exerciseHolder.weights),
+            secondCategory = DataList.IntList(exerciseHolder.reps),
+            firstCategoryName = "Weight",
+            secondCategoryName = "Reps"
+        )
     }
+
 }
 
 /**
@@ -273,6 +309,11 @@ fun OnActiveExerciseButton(
     )
 }
 
+enum class DataType {
+    INT,
+    DOUBLE
+}
+
 /**
  * has the exercise header the body with all of the sets and bottom to add sets and set break time
  */
@@ -286,9 +327,10 @@ fun GeneralExerciseComposable(
     setsNum: Int,
     isSecondCategory: Boolean = true,
     firstCategoryName: String,
-    setsWeight: List<SetWight>? = null,
-    sets: List<Set>? = null,
     secondCategoryName: String = "",
+    firstCategory: DataList,
+    secondCategory: DataList? = null,
+    refreshKey: Int = 0,
     atFirstCategoryChange: (Int, String) -> Unit,
     atSecondCategoryChange: (Int, String) -> Unit = { _, _ -> },
     atAddSet: () -> Unit,
@@ -361,19 +403,16 @@ fun GeneralExerciseComposable(
                             i = i,
                             atFirstCategoryChange = atFirstCategoryChange,
                             atSecondCategoryChange = atSecondCategoryChange,
-                            firstValDouble = if (setsWeight != null) setsWeight[i].first else -1.0,
-                            firstValInt = if (sets != null) sets[i].first else -1,
+                            firstValue = firstCategory.getValue(i),
+                            secondValue = secondCategory?.getValue(i) ?: "",
                             isSecondCategory = isSecondCategory,
-                            secondVal = if (setsWeight != null) setsWeight[i].second
-                            else if (sets != null) sets[i].second
-                            else -1,
                             isActiveWorkout = isActiveWorkout,
                             isTime = isTime,
                             startNotification = {
                                 notificationService.cancelAll()
                                 notificationService.showBasicNotification()
                             },
-                            onStart = {index ->
+                            onStart = { index ->
                                 timer.loadTime(breakTime.toInt())
                                 timer.start(
                                     onTick = {
@@ -492,80 +531,56 @@ fun SetsRow(
     atFirstCategoryChange: (Int, String) -> Unit,
     atSecondCategoryChange: (Int, String) -> Unit,
     isSecondCategory: Boolean,
-    firstValDouble: Double = -1.0,
-    firstValInt: Int = -1,
-    secondVal: Int,
+    firstValue: String,
+    secondValue: String,
     isActiveWorkout: Boolean = false,
     isTime: Boolean = false,
     onStart: (Int) -> Unit,
     startNotification: () -> Unit
 ) {
-    var firstDouble by remember {
-        mutableStateOf(
-            when (firstValDouble) {
-                -1.0 -> if (firstValInt == 0) "" else "$firstValInt"
-                else -> if (firstValDouble == 0.0) "" else "$firstValDouble"
-            }
-        )
-    }
-    var firstInt = when (firstValDouble) {
-        -1.0 -> if (firstValInt == 0) "" else "$firstValInt"
-        else -> if (firstValDouble == 0.0) "" else "$firstValDouble"
-    }
-
-    val second = if (secondVal == 0) "" else "$secondVal"
     var checked by rememberSaveable { mutableStateOf(false) }
+
     val color by animateColorAsState(
         targetValue =
             if (checked) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.surface,
         label = "checked row color"
     )
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.background(color = color)
     ) {
-        // the set number
         Text(
-            text = "${i+1}  ",
+            text = "${i + 1}  ",
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 12.dp)
         )
-        // double first value
-        if (firstValDouble != -1.0)
-            GoodTextField(
-                value = firstDouble,
-                onValueChange = {
-                    atFirstCategoryChange(i, it)
-                    firstDouble = it
 
-                },
-                modifier = Modifier.width(60.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-        else // int first value
-            GoodTextField(
-                value = firstInt,
-                onValueChange = {
-                    atFirstCategoryChange(i, it)
-                },
-                modifier = Modifier.width(60.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
+        GoodTextField(
+            value = firstValue,
+            onValueChange = { atFirstCategoryChange(i, it) },
+            modifier = Modifier.width(60.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
         Spacer(modifier = Modifier.width(12.dp))
-        if (isSecondCategory) { // second category
+
+        if (isSecondCategory) {
             GoodTextField(
-                value = second,
+                value = secondValue,
                 onValueChange = { atSecondCategoryChange(i, it) },
                 modifier = Modifier.width(60.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
+
             Spacer(modifier = Modifier.width(12.dp))
         }
-        if (isActiveWorkout) { // checkbox for break and marking finished set
-            if (!isTime)
+
+        if (isActiveWorkout) {
+            if (!isTime) {
                 androidx.compose.material3.Checkbox(
                     checked = checked,
                     onCheckedChange = {
@@ -573,17 +588,24 @@ fun SetsRow(
                         if (it) onStart(i)
                     }
                 )
-            else { // timer for timed exercise
-                val timer by remember { mutableStateOf(CountdownTimer(firstValInt))  }
-                var workTime by remember { mutableStateOf(timer.getFormattedTime()) }
+            } else {
+                val seconds = firstValue.toIntOrNull() ?: 0
+                val timer by remember {
+                    mutableStateOf(CountdownTimer(seconds))
+                }
+                var workTime by remember {
+                    mutableStateOf(timer.getFormattedTime())
+                }
+
                 timerForSet(
                     currentTime = workTime,
                     running = checked,
-                    cancel = {timer.reset()
+                    cancel = {
+                        timer.reset()
                         checked = false
                     },
                     onStart = {
-                        timer.loadTime(firstValInt)
+                        timer.loadTime(seconds)
                         checked = true
                         timer.start(
                             onTick = {
@@ -598,8 +620,8 @@ fun SetsRow(
                     }
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
 
+            Spacer(modifier = Modifier.width(12.dp))
         }
     }
 }
