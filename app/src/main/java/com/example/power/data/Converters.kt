@@ -1,5 +1,6 @@
 package com.example.power.data
 
+import android.util.Log
 import androidx.room.TypeConverter
 import com.example.power.data.room.BodyType
 import com.example.power.data.room.ExerciseHolder
@@ -11,10 +12,11 @@ import com.example.power.data.room.Week
 import com.example.power.data.room.Workout
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import java.util.Collections.emptyList
 import java.util.Date
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 
 /**
  * converts objects to jsons and back to store on to store on the repository and retrieve
@@ -24,6 +26,7 @@ class Converters {
     private val gson: Gson = GsonBuilder()
         .registerTypeAdapter(ExerciseHolder::class.java, ExerciseHolderDeserializer())
         .create()
+    private val serializationGson = Gson()
 
     @TypeConverter
     fun fromPlan(plan: Plan?): String? {
@@ -80,7 +83,11 @@ class Converters {
     @TypeConverter
     fun fromWorkoutList(workoutList: List<Workout>): String {
         val serializedWorkouts = workoutList.map { workout ->
-            val serializedExercises = gson.toJson(workout.exercises)
+            val serializedExercises = serializationGson.toJson(
+                workout.exercises.map { exercise ->
+                    serializationGson.toJsonTree(exercise, exercise::class.java)
+                }
+            )
             val serializedWorkout = gson.toJson(workout.copy(exercises = emptyList()))
             "{\"workout\":$serializedWorkout,\"exercises\":$serializedExercises}"
         }
@@ -89,14 +96,26 @@ class Converters {
 
     @TypeConverter
     fun toWorkoutList(workoutListString: String): List<Workout> {
-        val serializedWorkouts = gson.fromJson<List<String>>(workoutListString, object : TypeToken<List<String>>() {}.type)
-        val ret = serializedWorkouts.map { serialized ->
-            val json = gson.fromJson(serialized, JsonElement::class.java).asJsonObject
-            val workout = gson.fromJson(json.getAsJsonObject("workout"), Workout::class.java)
-            val exercises: List<ExerciseHolder> = gson.fromJson(json.getAsJsonArray("exercises"), object : TypeToken<List<ExerciseHolder>>() {}.type)
+        val serializedWorkouts = gson.fromJson<List<JsonElement>>(
+            workoutListString,
+            object : TypeToken<List<JsonElement>>() {}.type
+        )
+
+        return serializedWorkouts.map { serialized ->
+            val json = JsonParser.parseString(serialized.asString).asJsonObject
+
+            val workout = gson.fromJson(
+                json.getAsJsonObject("workout"),
+                Workout::class.java
+            )
+
+            val exercises: List<ExerciseHolder> = gson.fromJson(
+                json.getAsJsonArray("exercises"),
+                object : TypeToken<List<ExerciseHolder>>() {}.type
+            )
+
             workout.copy(exercises = exercises)
         }
-        return ret
     }
     // TypeConverter for List<Week>
     @TypeConverter

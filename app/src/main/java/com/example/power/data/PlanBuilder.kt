@@ -1,3 +1,4 @@
+
 import com.example.power.data.room.BodyType
 import com.example.power.data.room.CardioExercise
 import com.example.power.data.room.Exercise
@@ -7,10 +8,18 @@ import com.example.power.data.room.TimeExercise
 import com.example.power.data.room.WeightExercise
 import com.example.power.data.room.Workout
 
+data class ExerciseConfig(
+    val type: String,
+    val exerciseIndex: Int,
+    val sets: Int = 3
+)
+
 /**
- * a builder class to build a plan exercises and workouts to add to the app on first lunch
+ * A builder class to build plan exercises and workouts
+ * to add to the app on first launch.
  */
 class PlanBuilder {
+
     private val exercises = mutableListOf<Exercise>()
 
     // Add a new exercise to the list
@@ -36,8 +45,8 @@ class PlanBuilder {
         position: Int,
         exerciseIndex: Int,
         sets: Int = defaultSets,
-        reps: MutableList<Int> = defaultReps,
-        weights: MutableList<Double> = defaultWeights
+        reps: MutableList<Int> = defaultReps.toMutableList(),
+        weights: MutableList<Double> = defaultWeights.toMutableList()
     ): WeightExercise {
         return WeightExercise(
             weights = weights,
@@ -54,7 +63,7 @@ class PlanBuilder {
         position: Int,
         exerciseIndex: Int,
         sets: Int = defaultSets,
-        reps: MutableList<Int> = defaultReps
+        reps: MutableList<Int> = defaultReps.toMutableList()
     ): RepsExercise {
         return RepsExercise(
             reps = reps,
@@ -70,7 +79,7 @@ class PlanBuilder {
         position: Int,
         exerciseIndex: Int,
         sets: Int = defaultSets,
-        seconds: MutableList<Int> = defaultSeconds
+        seconds: MutableList<Int> = defaultSeconds.toMutableList()
     ): TimeExercise {
         return TimeExercise(
             seconds = seconds,
@@ -86,8 +95,8 @@ class PlanBuilder {
         position: Int,
         exerciseIndex: Int,
         sets: Int = defaultSets,
-        seconds: MutableList<Int> = defaultSeconds,
-        km: MutableList<Int> = defaultKm
+        seconds: MutableList<Int> = defaultSeconds.toMutableList(),
+        km: MutableList<Int> = defaultKm.toMutableList()
     ): CardioExercise {
         return CardioExercise(
             seconds = seconds,
@@ -99,18 +108,49 @@ class PlanBuilder {
         )
     }
 
-    // Build workout by passing exercise types and indices
-    fun buildWorkout(dayName: String, exerciseConfigs: List<Pair<String, Int>>): Workout {
-        val workoutExercises = exerciseConfigs.mapIndexed { index, (type, exerciseIndex) ->
-            when (type) {
-                "Weight" -> buildWeightExercise(position = index, exerciseIndex = exerciseIndex)
-                "Reps" -> buildRepsExercise(position = index, exerciseIndex = exerciseIndex)
-                "Time" -> buildTimeExercise(position = index, exerciseIndex = exerciseIndex)
-                "Cardio" -> buildCardioExercise(position = index, exerciseIndex = exerciseIndex)
-                else -> throw IllegalArgumentException("Unknown exercise type: $type")
+    // Build workout by passing exercise configurations
+    fun buildWorkout(
+        dayName: String,
+        exerciseConfigs: List<ExerciseConfig>
+    ): Workout {
+        val workoutExercises = exerciseConfigs.mapIndexed { index, config ->
+            when (config.type) {
+                "Weight" -> buildWeightExercise(
+                    position = index,
+                    exerciseIndex = config.exerciseIndex,
+                    sets = config.sets
+                )
+
+                "Reps" -> buildRepsExercise(
+                    position = index,
+                    exerciseIndex = config.exerciseIndex,
+                    sets = config.sets
+                )
+
+                "Time" -> buildTimeExercise(
+                    position = index,
+                    exerciseIndex = config.exerciseIndex,
+                    sets = config.sets
+                )
+
+                "Cardio" -> buildCardioExercise(
+                    position = index,
+                    exerciseIndex = config.exerciseIndex,
+                    sets = config.sets
+                )
+
+                else -> throw IllegalArgumentException(
+                    "Unknown exercise type: ${config.type}"
+                )
             }
         }
-        val workout = Workout(name = dayName, exercises = workoutExercises, position = this.position)
+
+        val workout = Workout(
+            name = dayName,
+            exercises = workoutExercises,
+            position = this.position
+        )
+
         this.position += 1
         return workout
     }
